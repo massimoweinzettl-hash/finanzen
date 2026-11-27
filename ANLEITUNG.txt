@@ -31,5 +31,4 @@ WO FINDE ICH WAS?
 - Buchungen: einzelne Ausgaben und Einnahmen.
 - Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
   Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
-- Kategorien: eigene Kategorien, Beispieldaten.
 - Zahnrad: Sicherung speichern und einspielen, Version.

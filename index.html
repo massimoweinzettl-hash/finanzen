@@ -133,7 +133,6 @@ td button { padding: 4px 8px; font-size: 13px }
     <button role="tab" data-tab="rec" aria-selected="false">Fix &amp; Abos</button>
     <button role="tab" data-tab="tx" aria-selected="false">Buchungen</button>
     <button role="tab" data-tab="loan" aria-selected="false">Kredite</button>
-    <button role="tab" data-tab="cat" aria-selected="false">Kategorien</button>
   </div>
   <div id="notice" class="note" hidden></div>
   <div id="bkwarn" class="note" hidden></div>
@@ -215,19 +214,6 @@ td button { padding: 4px 8px; font-size: 13px }
     <div id="loanlist" style="display:flex;flex-direction:column;gap:16px"></div>
   </section>
 
-  <section class="tab" id="tab-cat" hidden>
-    <div class="block">
-      <h2>Eigene Kategorie</h2>
-      <div class="row">
-        <label class="f2">Name<input id="cf-name" autocomplete="off" placeholder="z. B. Haustier, Kinder"></label>
-        <label class="f1">Für<select id="cf-type"><option value="out">Ausgaben</option><option value="in">Einnahmen</option></select></label>
-        <button data-act="csave">Hinzufügen</button>
-      </div>
-      <span class="small muted" id="cf-msg"></span>
-    </div>
-    <div class="block" id="catlist"></div>
-    <div class="block" id="exblock"></div>
-  </section>
 </div>
 
 <script>
@@ -265,7 +251,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 1;
+  var APP_VERSION = 2;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -462,7 +448,7 @@ td button { padding: 4px 8px; font-size: 13px }
   });
 
   /* Formular-Entwürfe: halb ausgefüllte Felder überstehen ein Neuladen der Seite */
-  const DRAFT_IDS = ["rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note", "cf-name"];
+  const DRAFT_IDS = ["rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note"];
   function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
   function restoreForms() { try { const o = JSON.parse(localStorage.getItem("finanzen-draft") || "{}"); Object.keys(o).forEach(id => { const el = $(id); if (el && DRAFT_IDS.includes(id)) el.value = o[id]; }); } catch (e) {} }
   document.addEventListener("input", ev => { if (DRAFT_IDS.includes(ev.target.id)) saveForms(); });
@@ -636,17 +622,6 @@ td button { padding: 4px 8px; font-size: 13px }
     $("lf-asof").value = curMonth(); $("lf-title").textContent = "Laufenden Kredit eintragen"; $("lf-cancel").hidden = true;
   }
 
-  /* ---------- Kategorien ---------- */
-  function renderCat() {
-    if (!S.ready) return;
-    const used = {}; recs().concat(txs()).forEach(x => { used[x.cat] = (used[x.cat] || 0) + 1; });
-    const part = (type, title) => "<h3>" + title + '</h3><div class="tablewrap"><table><tbody>' + cats().filter(c => c.type === type).map(c =>
-      "<tr><td>" + esc(c.name) + '</td><td class="r small muted">' + (used[c.id] || 0) + ' Einträge</td><td class="r">' + (BASE.some(b => b.id === c.id) ? '<span class="small muted">Standard</span>' : used[c.id] ? '<span class="small muted">in Gebrauch</span>' : '<button class="danger" data-act="cdel" data-id="' + esc(c.id) + '">Löschen</button>') + "</td></tr>").join("") + "</tbody></table></div>";
-    $("catlist").innerHTML = part("out", "Ausgaben") + part("in", "Einnahmen");
-    $("exblock").innerHTML = "<h2>Beispieldaten</h2>" + (hasExamples()
-      ? '<p class="muted">Es sind Beispieldaten geladen. Sie sind überall mit „Beispiel“ markiert und keine echten Werte.</p><div class="row"><button class="danger" data-act="exclear">Alle Beispiele entfernen</button></div>'
-      : '<p class="muted">Lädt einen erfundenen Musterhaushalt, damit du siehst, wie die Übersicht gefüllt aussieht. Lässt sich jederzeit wieder entfernen, deine eigenen Einträge bleiben unberührt.</p><div class="row"><button data-act="exload">Beispieldaten laden</button></div>');
-  }
   function fillCats(selId, type) {
     const s = $(selId), v = s.value;
     s.innerHTML = cats().filter(c => c.type === type).map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + "</option>").join("");
@@ -675,10 +650,10 @@ td button { padding: 4px 8px; font-size: 13px }
   function clearExamples() { recs().filter(r => r.example).forEach(r => put(r.id, null)); txs().filter(t => t.example).forEach(t => put(t.id, null)); loans().filter(l => l.example).forEach(l => put(l.id, null)); renderAll(); }
 
   /* ---------- Rendern & Events ---------- */
-  function renderAll() { backupWarn(); renderSum(); renderRec(); renderTx(); renderLoan(); renderCat(); }
+  function renderAll() { backupWarn(); renderSum(); renderRec(); renderTx(); renderLoan(); }
   function showTab(t) {
     S.tab = t;
-    ["sum", "rec", "tx", "loan", "cat"].forEach(k => { $("tab-" + k).hidden = k !== t; });
+    ["sum", "rec", "tx", "loan"].forEach(k => { $("tab-" + k).hidden = k !== t; });
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
     try { localStorage.setItem("finanzen-tab", t); } catch (e) {}
     window.scrollTo(0, 0);
@@ -761,14 +736,6 @@ td button { padding: 4px 8px; font-size: 13px }
       $("lf-title").textContent = "„" + l.name + "“ ändern"; $("lf-cancel").hidden = false; $("lf-msg").textContent = "Tipp: Für einen neuen Stand einfach Restschuld und Monat vom aktuellen Kontoauszug eintragen."; $("lf-title").scrollIntoView({ block: "center" }); $("lf-balance").focus();
     }
     else if (a === "ldel") { if (arm(b, "Sicher?")) { put(id, null); if (F.ledit === id) resetLoanForm(); renderAll(); } }
-    else if (a === "csave") {
-      const name = $("cf-name").value.trim(), type = $("cf-type").value;
-      if (!name) { $("cf-msg").textContent = "Bitte einen Namen eintragen."; return; }
-      if (cats().some(c => c.type === type && c.name.toLowerCase() === name.toLowerCase())) { $("cf-msg").textContent = "Diese Kategorie gibt es schon."; return; }
-      put("settings", { kind: "settings", cats: S.custom.concat([{ id: rid("c"), name, type }]) });
-      $("cf-name").value = ""; $("cf-msg").textContent = "„" + name + "“ hinzugefügt."; renderAll();
-    }
-    else if (a === "cdel") { if (arm(b, "Sicher?")) { put("settings", { kind: "settings", cats: S.custom.filter(c => c.id !== id) }); renderAll(); } }
     else if (a === "exload") { loadExamples(); showTab("sum"); }
     else if (a === "exclear") { if (arm(b, "Wirklich alle Beispiele entfernen?")) clearExamples(); }
   });
