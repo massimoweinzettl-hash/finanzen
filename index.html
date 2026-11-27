@@ -193,6 +193,12 @@ td button { padding: 4px 8px; font-size: 13px }
       </div>
       <div class="row" style="align-items:center"><button class="primary" data-act="tsave">Speichern</button><button data-act="tcancel" id="tf-cancel" hidden>Abbrechen</button><span class="small muted" id="tf-msg">Für Dinge, die nicht regelmäßig kommen. Feste Posten gehören in „Fix &amp; Abos“.</span></div>
     </div>
+    <div class="block" id="bankblock">
+      <h2>Kontoauszug einspielen</h2>
+      <p class="small muted">CSV-Export deines Girokontos (DKB: Umsätze → Export → CSV). Die Datei wird nur hier auf dem Gerät gelesen. Schon vorhandene Buchungen werden erkannt und nicht doppelt angelegt.</p>
+      <label>CSV-Datei<input type="file" id="bankfile" accept=".csv,text/csv,text/plain"></label>
+      <div id="bankprev"></div>
+    </div>
     <div id="txlist" style="display:flex;flex-direction:column;gap:16px"></div>
   </section>
 
@@ -262,7 +268,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 4;
+  var APP_VERSION = 5;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -497,8 +503,12 @@ td button { padding: 4px 8px; font-size: 13px }
     const p = sc.pays[k - a]; return p ? p.pay : (sc.never ? l.rate : 0);
   }
   function balAt(l, k, sc) { const a = mi(l.asOf); if (k <= a || sc.never) return l.balance; const p = sc.pays[k - a - 1]; return p ? p.bal : 0; }
+  /* Monate mit eingespieltem Kontoauszug: dort zählen die echten Buchungen, feste Posten und Kreditraten nicht zusätzlich
+     (Wunsch des Besitzers: nichts doppelt). Für Monate ohne Kontoauszug planen die festen Posten. */
+  const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
   function monthItems(m) {
     const out = [];
+    if (bankMonths()[m]) { txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example }); }); return out; }
     loans().forEach(l => { const v = loanPay(l, mi(m), sched(l)); if (v > 0) out.push({ src: "loan", id: l.id, name: l.name, amount: v, type: "out", cat: "kredit", example: l.example }); });
     recs().forEach(r => { if (dueIn(r, m)) out.push({ src: "rec", id: r.id, name: r.name, amount: amountAt(r, m), type: r.type, cat: r.cat, every: r.every, example: r.example }); });
     txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example }); });
@@ -537,6 +547,7 @@ td button { padding: 4px 8px; font-size: 13px }
     const fixed = items.filter(x => x.src !== "tx").sort((a, b) => (a.type === b.type ? b.amount - a.amount : a.type === "in" ? -1 : 1));
     if (fixed.length) h += '<div class="block"><div class="grphead"><h2>Feste Posten in diesem Monat</h2><span class="small muted">' + fixed.length + ' Posten</span></div><div class="tablewrap"><table><tbody>' + fixed.map(x =>
       "<tr><td>" + esc(x.name) + exTag(x) + '<span class="sub">' + esc(x.src === "loan" ? "Kreditrate" : catName(x.cat)) + (x.every > 1 ? " · " + EVERY[x.every] : "") + '</span></td><td class="r ' + (x.type === "in" ? "pos" : "") + '">' + (x.type === "in" ? "+" : "−") + eur(x.amount) + "</td></tr>").join("") + "</tbody></table></div></div>";
+    if (bankMonths()[m]) h += '<p class="small muted">Dieser Monat zeigt die Buchungen aus dem Kontoauszug. Feste Posten und Kreditraten zählen hier nicht zusätzlich.</p>';
     if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
     el.innerHTML = h;
   }
@@ -584,6 +595,85 @@ td button { padding: 4px 8px; font-size: 13px }
   }
 
   /* ---------- Buchungen ---------- */
+  /* ---------- Kontoauszug (CSV) ---------- */
+  function csvRows(txt) {
+    txt = txt.replace(/^\ufeff/, "");
+    const first = txt.split(/\r?\n/).find(l => /Betrag/i.test(l)) || txt.split(/\r?\n/)[0] || "";
+    const sep = (first.match(/;/g) || []).length >= (first.match(/,/g) || []).length ? ";" : ",";
+    const rows = []; let row = [], cur = "", q = false;
+    for (let i = 0; i < txt.length; i++) {
+      const c = txt[i];
+      if (q) { if (c === '"') { if (txt[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+      else if (c === '"') q = true;
+      else if (c === sep) { row.push(cur); cur = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && txt[i + 1] === "\n") i++; row.push(cur); rows.push(row); row = []; cur = ""; }
+      else cur += c;
+    }
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows.map(r => r.map(x => x.trim()));
+  }
+  const deDate = s => { const m = /^(\d{1,2})\.(\d{1,2})\.(\d{2}|\d{4})$/.exec(s || ""); if (!m) return null; const y = m[3].length === 2 ? "20" + m[3] : m[3]; return y + "-" + pad(+m[2]) + "-" + pad(+m[1]); };
+  const deNum = s => { s = String(s || "").replace(/[€\s]/g, ""); if (!/\d/.test(s)) return null; s = s.indexOf(",") >= 0 ? s.replace(/\./g, "").replace(",", ".") : s; const n = parseFloat(s); return isFinite(n) ? n : null; };
+  function hashStr(str) { let h1 = 0x811c9dc5, h2 = 0x9747b28c; for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ c, 2246822519); } return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36); }
+  const RULES = [
+    [/gehalt|lohn|bez(ü|ue)ge|entgelt|besoldung/i, "gehalt", "in"], [/trade ?republic|depot|sparplan|\betfs?\b/i, "sparen"],
+    [/darlehen|kredit|tilgung|rate\b/i, "kredit"], [/versicherung|huk|allianz|ergo|axa|debeka|devk|generali|signal iduna|krankenkasse|haftpflicht|hausrat/i, "vers"],
+    [/miete|wohnung|hausverwaltung|nebenkosten|stadtwerke|strom|gas|vattenfall|eon|e\.on|enbw|telekom|vodafone|o2|1&1|internet|rundfunk|gez/i, "fix"],
+    [/netflix|spotify|youtube|google|apple\.com|itunes|amazon prime|disney|dazn|claude|anthropic|openai|fitness|mcfit|urban sports|abo/i, "abo"],
+    [/rewe|edeka|aldi|lidl|kaufland|netto|penny|norma|dm-drogerie|dm drogerie|rossmann|m(ü|ue)ller|globus|real|supermarkt|b(ä|ae)ckerei/i, "essen"],
+    [/aral|shell|esso|jet |total|tankstelle|\btank|bahn\b|db vertrieb|mvg|bvg|hvv|vgn|parken|parkhaus|uber|flixbus|kfz-steuer/i, "mobil"],
+    [/apotheke|arzt|zahnarzt|praxis|klinik/i, "gesund"], [/restaurant|lieferando|bar |cafe|caf(é|e)|kino|ticket|eventim/i, "freizeit"]
+  ];
+  function guessCat(text, type) {
+    const r = recs().find(x => x.type === type && x.name && text.toLowerCase().indexOf(x.name.toLowerCase()) >= 0);
+    if (r) return r.cat;
+    for (const [re, cat, only] of RULES) if (re.test(text) && (!only || only === type) && cats().some(c => c.id === cat && c.type === type)) return cat;
+    return type === "in" ? "in_sonst" : "out_sonst";
+  }
+  function parseBank(txt) {
+    const rows = csvRows(txt);
+    const hi = rows.findIndex(r => r.some(c => /^betrag/i.test(c)) && r.some(c => /buchung|datum/i.test(c)));
+    if (hi < 0) return { err: "In der Datei finde ich keine Spalten „Buchungsdatum“ und „Betrag“. Ist das der CSV-Export der Umsätze?" };
+    const H = rows[hi].map(c => c.toLowerCase()), col = re => H.findIndex(c => re.test(c));
+    const cDate = col(/^buchungs(datum|tag)$/) >= 0 ? col(/^buchungs(datum|tag)$/) : col(/datum/), cAmt = col(/^betrag/), cStat = col(/^status/);
+    const cPay = col(/zahlungspflichtige|auftraggeber/), cRec = col(/zahlungsempf(ä|ae)nger|beg(ü|ue)nstigter|empf(ä|ae)nger/), cPurp = col(/verwendungszweck/);
+    const out = [], seen = {}; let skipped = 0;
+    rows.slice(hi + 1).forEach(r => {
+      if (r.length < 2) return;
+      const date = deDate(r[cDate]), amt = deNum(r[cAmt]);
+      if (!date || amt == null || amt === 0) { if (r.join("").trim()) skipped++; return; }
+      if (cStat >= 0 && /vorgemerkt/i.test(r[cStat] || "")) { skipped++; return; }
+      const type = amt < 0 ? "out" : "in";
+      const who = (type === "out" ? r[cRec] : r[cPay]) || r[cRec] || r[cPay] || "", purp = cPurp >= 0 ? r[cPurp] || "" : "";
+      const base = date + "|" + amt + "|" + who + "|" + purp; let n = (seen[base] = (seen[base] || 0) + 1);
+      const id = "t" + hashStr(base + "|" + n);
+      out.push({ id, doc: { kind: "tx", src: "bank", date, amount: Math.abs(Math.round(amt * 100) / 100), type, name: (who || purp).slice(0, 80), note: purp.slice(0, 140), cat: guessCat(who + " " + purp, type) } });
+    });
+    if (!out.length) return { err: "Ich habe keine gebuchten Umsätze in der Datei gefunden." };
+    const fresh = out.filter(x => !S.tx[x.id]);
+    const ds = out.map(x => x.doc.date).sort();
+    return { all: out, fresh, dup: out.length - fresh.length, skipped, from: ds[0], to: ds[ds.length - 1] };
+  }
+  function renderBankPrev() {
+    const el = $("bankprev"); if (!el) return;
+    const b = S.bank; if (!b) { el.innerHTML = ""; return; }
+    if (b.err) { el.innerHTML = '<p class="note">' + esc(b.err) + "</p>"; return; }
+    if (b.done) { el.innerHTML = '<p class="small muted">' + esc(b.done) + "</p>"; return; }
+    const byCat = {}; b.fresh.forEach(x => { byCat[x.doc.cat] = (byCat[x.doc.cat] || 0) + 1; });
+    el.innerHTML = "<p>" + b.all.length + " Umsätze vom " + dfmt(b.from) + b.from.slice(0, 4) + " bis " + dfmt(b.to) + b.to.slice(0, 4) + ": <b>" + b.fresh.length + " neu</b>" + (b.dup ? ", " + b.dup + " schon vorhanden" : "") + (b.skipped ? ", " + b.skipped + " vorgemerkte oder unlesbare übersprungen" : "") + ".</p>" +
+      (b.fresh.length ? '<p class="small muted">Kategorien vorgeschlagen: ' + Object.keys(byCat).sort((x, y) => byCat[y] - byCat[x]).map(c => esc(catName(c)) + " " + byCat[c]).join(", ") + '. Du kannst jede Buchung danach mit „Ändern“ umsortieren.</p><p class="small muted">In Monaten mit Kontoauszug zählen nur die echten Buchungen, feste Posten und Kreditraten dort nicht zusätzlich.</p><div class="row"><button class="primary" data-act="bankgo">' + b.fresh.length + ' Buchungen übernehmen</button><button data-act="bankno">Abbrechen</button></div>' : '<div class="row"><button data-act="bankno">OK</button></div>');
+  }
+  document.addEventListener("change", ev => {
+    if (ev.target.id !== "bankfile" || !ev.target.files || !ev.target.files[0]) return;
+    const f = ev.target.files[0];
+    if (f.size > 1e7) { S.bank = { err: "Die Datei ist zu groß." }; renderBankPrev(); return; }
+    f.arrayBuffer().then(buf => {
+      let t = new TextDecoder("utf-8").decode(buf);
+      if (t.indexOf("\ufffd") >= 0) { try { t = new TextDecoder("windows-1252").decode(buf); } catch (e) {} }
+      S.bank = parseBank(t); renderBankPrev(); ev.target.value = "";
+    });
+  });
+
   function renderTx() {
     if (!S.ready) return;
     fillCats("tf-cat", F.ttype);
@@ -593,7 +683,7 @@ td button { padding: 4px 8px; font-size: 13px }
     let h = '<div class="block"><div class="month"><button data-act="mprev" aria-label="Vorheriger Monat">‹</button><b>' + mname(m) + '</b><button data-act="mnext" aria-label="Nächster Monat">›</button></div>';
     if (!list.length) h += '<p class="empty">Keine einzelnen Buchungen in diesem Monat.</p>';
     else h += '<p class="small muted">' + list.length + " Buchungen · " + eur(so) + " ausgegeben" + (si ? " · " + eur(si) + " eingenommen" : "") + '</p><div class="tablewrap"><table><tbody>' + list.map(t =>
-      "<tr><td>" + dfmt(t.date) + "</td><td>" + esc(t.name || catName(t.cat)) + exTag(t) + '<span class="sub">' + esc(catName(t.cat)) + '</span></td><td class="r ' + (t.type === "in" ? "pos" : "") + '">' + (t.type === "in" ? "+" : "−") + eur(t.amount) + '</td><td class="r act"><button data-act="tedit" data-id="' + esc(t.id) + '">Ändern</button><button class="danger" data-act="tdel" data-id="' + esc(t.id) + '">Löschen</button></td></tr>').join("") + "</tbody></table></div>";
+      "<tr><td>" + dfmt(t.date) + "</td><td>" + esc(t.name || catName(t.cat)) + exTag(t) + '<span class="sub">' + esc(catName(t.cat)) + (t.src === "bank" ? " · Konto" : "") + '</span></td><td class="r ' + (t.type === "in" ? "pos" : "") + '">' + (t.type === "in" ? "+" : "−") + eur(t.amount) + '</td><td class="r act"><button data-act="tedit" data-id="' + esc(t.id) + '">Ändern</button><button class="danger" data-act="tdel" data-id="' + esc(t.id) + '">Löschen</button></td></tr>').join("") + "</tbody></table></div>";
     $("txlist").innerHTML = h + "</div>";
   }
   function resetTxForm() { F.tedit = null; $("tf-name").value = ""; $("tf-amount").value = ""; $("tf-title").textContent = "Einzelne Buchung eintragen"; $("tf-cancel").hidden = true; }
@@ -719,7 +809,7 @@ td button { padding: 4px 8px; font-size: 13px }
       const amount = num($("tf-amount").value), date = $("tf-date").value || today();
       if (!(amount > 0)) { $("tf-msg").textContent = "Bitte einen Betrag über 0 eintragen."; return; }
       const idx = F.tedit || rid("t"), old = S.tx[idx];
-      put(idx, { kind: "tx", date, name: $("tf-name").value.trim(), amount, type: F.ttype, cat: $("tf-cat").value, example: old ? !!old.example : false });
+      put(idx, { kind: "tx", date, name: $("tf-name").value.trim(), amount, type: F.ttype, cat: $("tf-cat").value, example: old ? !!old.example : false, src: old && old.src ? old.src : undefined, note: old && old.note ? old.note : undefined });
       $("tf-msg").textContent = eur(amount) + " am " + dfmt(date) + " gespeichert."; S.month = date.slice(0, 7); resetTxForm(); renderAll(); $("tf-amount").focus();
     }
     else if (a === "tcancel") { resetTxForm(); $("tf-msg").textContent = ""; }
@@ -727,6 +817,12 @@ td button { padding: 4px 8px; font-size: 13px }
       const t = S.tx[id]; if (!t) return; F.tedit = id; F.ttype = t.type; press("tftype", t.type); fillCats("tf-cat", t.type);
       $("tf-date").value = t.date; $("tf-amount").value = String(t.amount).replace(".", ","); $("tf-name").value = t.name || ""; $("tf-cat").value = t.cat;
       $("tf-title").textContent = "Buchung ändern"; $("tf-cancel").hidden = false; $("tf-msg").textContent = ""; window.scrollTo(0, 0); $("tf-amount").focus();
+    }
+    else if (a === "bankno") { S.bank = null; renderBankPrev(); }
+    else if (a === "bankgo") {
+      const bk = S.bank; if (!bk || !bk.fresh) return;
+      bk.fresh.forEach(x => put(x.id, x.doc));
+      const last = bk.to.slice(0, 7); S.bank = { done: bk.fresh.length + " Buchungen übernommen." }; S.month = last; renderAll(); renderBankPrev();
     }
     else if (a === "tdel") { if (arm(b, "Sicher?")) { put(id, null); if (F.tedit === id) resetTxForm(); renderAll(); } }
     else if (a === "lsave") {
