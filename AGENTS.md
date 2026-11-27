@@ -25,7 +25,7 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 - Andere localStorage-Schlüssel: `finanzen-tab`, `finanzen-draft`, `finanzen-lastbackup`.
 
 ## Offen
-- Budget pro Kategorie (angeboten, nicht beauftragt).
+- Interne Umbuchungen evtl. aus den Summen ausklammern (gefragt, keine Antwort).
 
 ## App-Verhalten (seit v11, 1:1 wie Trainingslog, Wunsch des Besitzers)
 - Oberfläche nicht markierbar, kein Kopier-Menü (`user-select`/`touch-callout`), Eingaben bleiben markierbar; kein Tipp-Blitz; kein Zoomen (Viewport `#vpm` + `gesturestart` abfangen, `touch-action`).
