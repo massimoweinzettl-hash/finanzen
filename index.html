@@ -396,7 +396,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 30;
+  var APP_VERSION = 31;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -683,7 +683,15 @@ td button { padding: 4px 8px; font-size: 13px }
   /* v17 (Wunsch des Besitzers): Netto-Einnahmen eines Monats direkt eintragen – ersetzt alle Einnahmen dieses einen Monats. */
   function monthItems(m) {
     const v = S.incov[m]; if (v == null) return monthItems0(m);
-    return monthItems0(m).filter(x => x.type !== "in").concat([{ src: "inov", id: "inov-" + m, name: "Netto-Einnahmen (selbst eingetragen)", amount: v, type: "in", cat: "gehalt" }]);
+    const base = monthItems0(m), name = "Netto-Einnahmen (selbst eingetragen)";
+    /* Laufender Monat mit Kontoauszug: schon gebuchte Einnahmen bleiben, der Rest vom eingetragenen Netto ist „kommt noch“
+       (sonst fehlt das noch ausstehende Gehalt im Kontostand am Monatsende). */
+    if (bankMonths()[m] && m === curMonth()) {
+      const got = base.filter(x => x.type === "in" && x.bank), sum = got.reduce((a, x) => a + x.amount, 0), out = base.filter(x => x.type !== "in").concat(got);
+      if (v - sum > 0.005) out.push({ src: "inov", id: "inov-" + m, name: name + (sum ? ", Rest" : ""), amount: Math.round((v - sum) * 100) / 100, type: "in", cat: "gehalt", open: true });
+      return out;
+    }
+    return base.filter(x => x.type !== "in").concat([{ src: "inov", id: "inov-" + m, name, amount: v, type: "in", cat: "gehalt" }]);
   }
   function monthItems0(m) {
     const out = [];
@@ -807,11 +815,19 @@ td button { padding: 4px 8px; font-size: 13px }
     for (let k = k0 + 1; k <= km; k++) { const j = S.sb ? S.sb.sm.indexOf(im(k)) : -1, t = j >= 0 ? S.sb.st[j] : totals(im(k)); b += t.i - t.o - t.sp; }
     return b;
   }
+  /* Rechenweg zum Kontostand am Monatsende: heute + was in diesem Monat noch kommt (offene Posten) + Salden der Folgemonate */
+  function kontoWeg(m) {
+    const K = S.konto.date.slice(0, 7); let pin = 0, pout = 0;
+    monthItems(K).forEach(x => { if (x.open) { if (x.type === "in") pin += x.amount; else pout += x.amount; } });
+    let r = eur(S.konto.balance) + " heute + " + eur(pin) + " kommt noch rein − " + eur(pout) + " geht noch ab";
+    if (m !== K) { const d = projBal(m) - projBal(K); r += (d < 0 ? " − " : " + ") + eur(Math.abs(d)) + " aus den Monaten bis " + mname(m).split(" ")[0]; }
+    return r + "<br>";
+  }
   function kontoHtml(m) {
     if (S.kEdit) return '<div class="kline ed"><label>Kontostand heute (Girokonto)<span class="krow"><input id="konto-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.konto ? String(S.konto.balance).replace(".", ",") : "") + '"><button class="primary" data-act="ksave">OK</button></span></label></div>';
     if (!S.konto) return '<button class="kline" data-act="kedit"><span>Kontostand eintragen, um zu sehen, was am Monatsende auf dem Konto steht ✎</span></button>';
     const b = projBal(m);
-    return '<button class="kline" data-act="kedit"><span>' + (b == null ? "Kontostand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) : "Kontostand Ende " + mname(m) + ': <b class="' + (b < 0 ? "neg" : "") + '">' + eur(b) + "</b>") + '</span><span class="small muted">Stand ' + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + " ✎</span></button>";
+    return '<button class="kline" data-act="kedit"><span>' + (b == null ? "Kontostand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) : "Kontostand Ende " + mname(m) + ': <b class="' + (b < 0 ? "neg" : "") + '">' + eur(b) + "</b>") + '</span><span class="small muted">' + (b == null ? "" : kontoWeg(m)) + "Stand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + " ✎</span></button>";
   }
   function sreadHtml(m) {
     const j = S.sb ? S.sb.sm.indexOf(m) : -1, t = j >= 0 ? S.sb.st[j] : totals(m), none = !t.i && !t.o;
