@@ -16,3 +16,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v9: Kommende Monate schätzen Alltagsausgaben und weitere Einnahmen (Schnitt der letzten 6 Monate ohne feste Posten), damit die Planung nicht zu rosig ist (Entscheidung des Besitzers).
 - v10: Geldfluss als Sankey-Diagramm in der Übersicht, umschaltbar Monat/Jahr und €/%, mit Sparquote und Sparrate pro Monat.
 - v11: App-Verhalten wie im Trainingslog übernommen (nicht markierbar, kein Zoomen, Wischen zwischen Reitern, Haptik, Zahlenfelder markieren, nur Hochformat). Saldo: Wischen wählt Monat (Anzeige mit Saldo, Einnahmen, Ausgaben), Werte an den Balken.
+- v12: Einnahmen im Monatsblatt anpassen (Wunsch des Besitzers: Weihnachtsgeld schwankt, TVöD-Erhöhungen unregelmäßig): Betrag nur für diesen Monat (`over`), ab diesem Monat (`changes`), einmalige Einnahme (fester Posten mit start = end).

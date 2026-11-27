@@ -166,6 +166,10 @@ td button { padding: 4px 8px; font-size: 13px }
 .sb.sel { background: var(--accent-soft) }
 .sbv { position: absolute; left: -6px; right: -6px; text-align: center; font-size: 9.5px; line-height: 12px; color: var(--muted); white-space: nowrap; letter-spacing: -.02em; pointer-events: none }
 .sb.sel .sbv { color: var(--ink); font-weight: 600 }
+.incrow { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.incrow:last-child { border-bottom: 0 }
+.incrow .ih { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.incrow .row button { padding: 9px 10px }
 .sread { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 64px }
 .sread > div { display: flex; flex-direction: column; min-width: 0 }
 .sread .sm { font-size: 13px; color: var(--muted); font-weight: 600 } .sread b { font: 600 24px var(--display) } .sread .si { font-size: 12px; color: var(--muted) }
@@ -373,7 +377,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 11;
+  var APP_VERSION = 12;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -526,7 +530,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (!d || typeof d !== "object" || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return null;
     if (id === "settings") return Array.isArray(d.cats) && d.cats.every(c => c && isStr(c.id) && isStr(c.name) && (c.type === "in" || c.type === "out")) ? { kind: "settings", cats: d.cats } : null;
     if (id === "budgets") return d.limits && typeof d.limits === "object" && Object.keys(d.limits).every(k => isNum(d.limits[k]) && d.limits[k] > 0) ? { kind: "budgets", limits: d.limits } : null;
-    if (d.kind === "rec") return isStr(d.name) && isNum(d.amount) && isMon(d.start) && (d.type === "in" || d.type === "out") && [1, 3, 6, 12].includes(d.every) && (!d.changes || (Array.isArray(d.changes) && d.changes.every(c => isMon(c.from) && isNum(c.amount)))) ? d : null;
+    if (d.kind === "rec") return isStr(d.name) && isNum(d.amount) && isMon(d.start) && (d.type === "in" || d.type === "out") && [1, 3, 6, 12].includes(d.every) && (!d.changes || (Array.isArray(d.changes) && d.changes.every(c => isMon(c.from) && isNum(c.amount)))) && (!d.over || (typeof d.over === "object" && Object.keys(d.over).every(k => isMon(k) && isNum(d.over[k])))) ? d : null;
     if (d.kind === "tx") return isNum(d.amount) && isStr(d.date) && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && (d.type === "in" || d.type === "out") ? d : null;
     if (d.kind === "loan") return isStr(d.name) && isNum(d.balance) && isNum(d.rate) && isMon(d.asOf) ? d : null;
     return null;
@@ -590,6 +594,7 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   const active = (r, m) => { const k = mi(m); return k >= mi(r.start) && (!r.end || k <= mi(r.end)); };
   function amountAt(r, m) {
+    if (r.over && r.over[m] != null) return r.over[m]; /* v12: Betrag nur für diesen Monat (Monatsblatt) */
     let a = r.amount; const k = mi(m);
     (r.changes || []).forEach(c => { if (mi(c.from) <= k) a = c.amount; });
     return a;
@@ -637,7 +642,7 @@ td button { padding: 4px 8px; font-size: 13px }
     for (let k = kc - 6; k < kc; k++) {
       const m = im(k), pool = monthItems(m).filter(x => x.src === "tx"), used = {};
       const due = [];
-      recs().forEach(r => { const n = r.every || 1; if (((k - mi(r.start)) % n + n) % n === 0) due.push({ type: r.type, a: [amountAt(r, m), amountAt(r, curMonth())] }); });
+      recs().forEach(r => { const n = r.every || 1; if (r.end === r.start ? dueIn(r, m) : ((k - mi(r.start)) % n + n) % n === 0) due.push({ type: r.type, a: [amountAt(r, m), amountAt(r, curMonth())] }); });
       loans().forEach(l => { due.push({ type: "out", a: [l.rate] }); });
       due.forEach(d => { const hit = pool.find(x => !used[x.id] && x.type === d.type && d.a.some(a => Math.abs(x.amount - a) <= Math.max(1, a * 0.05))); if (hit) used[hit.id] = 1; });
       pool.forEach(x => { if (used[x.id]) return; const key = x.type + "|" + x.cat; sum[key] = (sum[key] || 0) + x.amount; });
@@ -831,6 +836,7 @@ td button { padding: 4px 8px; font-size: 13px }
         '<div class="stats"><div><b class="pos">' + eur(t.i) + '</b><span>Einnahmen</span></div><div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
       else if (isPlan(m)) h += '<p class="small muted">Geplant aus deinen festen Posten, Kreditraten und geschätzten Alltagsausgaben (Schnitt der letzten 6 Monate).</p>';
+      if (!(bankMonths()[m] && mi(m) < mi(curMonth()))) h += incEdit(m);
       ["out", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '" data-ty="' + ty + '" data-m="' + m + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + "</span></button>").join("") + "</div></div>";
@@ -846,6 +852,22 @@ td button { padding: 4px 8px; font-size: 13px }
     let h = '<div class="shead"><h2><span class="dot" style="display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;background:' + ccol(sh.cat) + '"></span>' + esc(catName(sh.cat)) + '</h2><button data-act="sheetclose">Schließen</button></div>' +
       '<p class="muted">' + esc(sh.lab) + " · " + (sh.ty === "in" ? "Einnahmen" : "Ausgaben") + ": <b class=\"" + (sh.ty === "in" ? "pos" : "") + "\">" + eur(sum) + "</b> · " + items.length + (items.length === 1 ? " Eintrag" : " Einträge") + "</p>";
     h += items.length ? '<div class="tablewrap"><table><tbody>' + items.map(x => itemRow(x, false)).join("") + "</tbody></table></div>" : '<p class="empty">Nichts in diesem Zeitraum.</p>';
+    return h;
+  }
+  /* v12 (Wunsch des Besitzers): Einnahmen im Monatsblatt anpassen – Betrag nur für diesen Monat (`over`), ab diesem Monat
+     (`changes`) oder eine einmalige Einnahme (fester Posten mit start = end, z. B. Weihnachtsgeld, das jedes Jahr anders ausfällt). */
+  function incEdit(m) {
+    const list = recs().filter(r => r.type === "in" && dueIn(r, m));
+    let h = '<div class="sec"><h3>Einnahmen anpassen</h3>';
+    h += list.map(r => {
+      const once = r.end === r.start, ov = r.over && r.over[m] != null;
+      return '<div class="incrow"><div class="ih"><b>' + esc(r.name) + '</b><span class="small muted">' + (once ? "einmalig" : ov ? "nur in diesem Monat angepasst" : "fest, " + EVERY[r.every || 1]) + "</span></div>" +
+        '<div class="row" style="align-items:center"><label class="f1" style="flex:1 1 110px">Betrag (€)<input id="inc-' + esc(r.id) + '" inputmode="decimal" autocomplete="off" value="' + String(amountAt(r, m)).replace(".", ",") + '"></label>' +
+        (once ? '<button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="once">Speichern</button><button class="danger" data-act="incdel" data-id="' + esc(r.id) + '">Entfernen</button>'
+          : '<button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="one">Nur dieser Monat</button><button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="from">Ab ' + mshort(m) + "</button>" + (ov ? '<button class="ghost" data-act="increset" data-id="' + esc(r.id) + '" data-m="' + m + '">Zurücksetzen</button>' : "")) + "</div></div>";
+    }).join("");
+    h += '<div class="incrow"><div class="ih"><b>Einmalige Einnahme</b><span class="small muted">z. B. Weihnachtsgeld, Prämie</span></div><div class="row"><label class="f2">Bezeichnung<input id="inc-new-name" autocomplete="off" placeholder="Weihnachtsgeld"></label><label class="f1">Betrag (€)<input id="inc-new-amt" inputmode="decimal" autocomplete="off"></label></div>' +
+      '<div class="row" style="align-items:center"><button class="primary" data-act="incadd" data-m="' + m + '">Hinzufügen</button><span class="small muted" id="inc-msg"></span></div></div></div>';
     return h;
   }
   function openSheet() {
@@ -1127,6 +1149,28 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
+    else if (a === "incset" || a === "increset") {
+      const r = S.rec[id], m = b.dataset.m; if (!r) return;
+      const d = JSON.parse(JSON.stringify(r)), v = a === "incset" ? num(($("inc-" + id) || {}).value) : null;
+      if (a === "incset" && !(v > 0)) { const el = $("inc-" + id); if (el) el.focus(); return; }
+      if (a === "increset") { if (d.over) delete d.over[m]; }
+      else if (b.dataset.k === "once") d.amount = v;
+      else if (b.dataset.k === "one") { d.over = d.over || {}; d.over[m] = v; }
+      else {
+        if (d.over) Object.keys(d.over).forEach(k => { if (mi(k) >= mi(m)) delete d.over[k]; });
+        if (mi(m) <= mi(d.start)) d.amount = v;
+        else { d.changes = (d.changes || []).filter(c => mi(c.from) < mi(m)); d.changes.push({ from: m, amount: v }); }
+      }
+      if (d.over && !Object.keys(d.over).length) delete d.over;
+      put(id, d); haptic(); renderAll();
+    }
+    else if (a === "incdel") { if (arm(b, "Sicher?")) { put(id, null); renderAll(); } }
+    else if (a === "incadd") {
+      const m = b.dataset.m, name = $("inc-new-name").value.trim() || "Einmalige Einnahme", v = num($("inc-new-amt").value);
+      if (!(v > 0)) { $("inc-msg").textContent = "Bitte einen Betrag eintragen."; $("inc-new-amt").focus(); return; }
+      put(rid("r"), { kind: "rec", name, amount: v, type: "in", cat: "gehalt", every: 1, start: m, end: m, changes: [], note: "einmalig", example: false });
+      haptic(); renderAll();
+    }
     else if (a === "cty") { S.cty = id; renderSum(); }
     else if (a === "cunit") { S.cunit = id; renderSum(); }
     else if (a === "cper") { S.cper = id; renderSum(); }
@@ -1151,7 +1195,7 @@ td button { padding: 4px 8px; font-size: 13px }
       const changes = F.changes.map(c => ({ from: c.from, amount: num(c.amount) })).filter(c => c.from && c.amount > 0).sort((a, b) => mi(a.from) - mi(b.from));
       if (F.changes.some(c => (c.from || String(c.amount).trim()) && !(c.from && num(c.amount) > 0))) { $("rf-msg").textContent = "Bei jeder Änderung bitte Monat und neuen Betrag eintragen, oder die Zeile entfernen."; return; }
       const idx = F.redit || rid("r"), old = S.rec[idx];
-      put(idx, { kind: "rec", name, amount, type: F.rtype, cat: $("rf-cat").value, every: +$("rf-every").value, start, end, changes, note: $("rf-note").value.trim(), example: old ? !!old.example : false });
+      put(idx, { kind: "rec", name, amount, type: F.rtype, cat: $("rf-cat").value, every: +$("rf-every").value, start, end, changes, note: $("rf-note").value.trim(), example: old ? !!old.example : false, over: old && old.over ? old.over : undefined });
       $("rf-msg").textContent = "„" + name + "“ gespeichert."; resetRecForm(); renderAll();
     }
     else if (a === "chadd") { F.changes.push({ from: "", amount: "" }); renderChanges(); const el = $("ch-from-" + (F.changes.length - 1)); if (el) el.focus(); }
