@@ -2,7 +2,7 @@
 
 Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei jeder Änderung mitpflegen.** Nur der aktuelle Stand; Geschichte in `VERLAUF.md`. Das Repo ist öffentlich – nichts Persönliches eintragen, keine echten Beträge.
 
-**Stand:** v6 (27.11.2026)
+**Stand:** v7 (27.11.2026)
 
 ## Nach jeder Änderung
 - `APP_VERSION` in `index.html` +1 (die installierte App zeigt dann „Update bereit“).
@@ -19,7 +19,7 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 - Alles in `index.html` (HTML, CSS, JS, kein Build, keine Bibliotheken). Schriften im Repo (`SCHRIFTEN-LIZENZ.txt`).
 - `sw.js`: Offline-Cache. Neue Dateien in `FILES` (dann `CACHE` hochzählen) und in `SWC`/`SWF` in `index.html`.
 - Daten nur lokal: IndexedDB „finanzen“ (Store `docs`), Journal `finanzen-journal` in localStorage, Fallback `finanzen-data`. Schreiben nur über `put(id, data)`.
-- Docs: `rec` (feste Posten, `r…`: name, amount, type in|out, cat, every 1|3|6|12, start/end YYYY-MM, changes [{from, amount}], note), `tx` (Buchungen, `t…`: date, amount, type, cat, name), `loan` (`l…`: balance, rate, interest % p. a., asOf, original, first, lender, note, optional balloon + end = Schlussrate), `settings` (eigene Kategorien `cats`; Reiter Kategorien seit v2 entfernt – Besitzer: sinnlos. Vorhandene eigene Kategorien bleiben lesbar, neue gibt es nicht). `example: true` = Beispieldaten.
+- Docs: `rec` (feste Posten, `r…`: name, amount, type in|out, cat, every 1|3|6|12, start/end YYYY-MM, changes [{from, amount}], note), `tx` (Buchungen, `t…`: date, amount, type, cat, name), `loan` (`l…`: balance, rate, interest % p. a., asOf, original, first, lender, note, optional balloon + end = Schlussrate), `budgets` (Doc-Id `budgets`: `limits` {Kategorie-Id: € pro Monat}), `settings` (eigene Kategorien `cats`; Reiter Kategorien seit v2 entfernt – Besitzer: sinnlos. Vorhandene eigene Kategorien bleiben lesbar, neue gibt es nicht). `example: true` = Beispieldaten.
 - Kontoauszug: `tx` mit `src: "bank"` und `note` (Verwendungszweck). Persönliche Kontodaten nie ins Repo, auch nicht als Testdatei.
 - Sicherung: JSON `{ app: "finanzen", format: 1, version, exported, docs }`.
 - Andere localStorage-Schlüssel: `finanzen-tab`, `finanzen-draft`, `finanzen-lastbackup`.
@@ -28,4 +28,4 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 - Budget pro Kategorie (angeboten, nicht beauftragt).
 
 ## Aufbau
-- Reiter: Übersicht · Fix & Abos · Buchungen · Kredite. Zahnrad oben links: Sicherung, Version. Beispieldaten nur über die leere Übersicht.
+- Reiter (seit v7, Wunsch des Besitzers): Übersicht · Budgets · Transaktionen. Übersicht = Saldo pro Monat (Jahr wählbar, Monat antippen → Blatt mit Monatsüberblick) und Kategorien als Kuchendiagramm (Ausgaben/Einnahmen, €/%, Monat/Jahr; Kategorie antippen → Blatt mit allen Einträgen). Budgets = Umschalter Budgets (Monatslimits pro Kategorie) · Fix & Abos · Kredite. Transaktionen = früher Buchungen. Kategorie-Farben fest pro Kategorie (`CCOL`), nicht nach Rang. Alte gespeicherte Reiter `rec`/`loan` landen unter Budgets. Zahnrad oben links: Sicherung, Version. Beispieldaten nur über die leere Übersicht.

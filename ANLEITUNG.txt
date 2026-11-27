@@ -23,13 +23,17 @@ WICHTIG
 
 WO FINDE ICH WAS?
 -----------------
-- Übersicht: Monat mit Einnahmen, Ausgaben, was übrig bleibt, Verlauf,
-  Ausgaben nach Kategorie, feste Posten des Monats.
-- Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
-  Prämie usw. mit Rhythmus; "Betrag ändert sich später" für
-  Gehaltserhöhungen (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
-- Buchungen: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
+- Übersicht: Saldo pro Monat (Monat antippen = Überblick mit Einnahmen,
+  Ausgaben und Kategorien), darunter Kategorien als Kuchendiagramm, umschaltbar
+  Ausgaben/Einnahmen, € oder %, Monat oder Jahr. Kategorie antippen zeigt alle
+  Einträge darin.
+- Budgets: Monatslimits pro Kategorie (z. B. Shopping 150 €) mit Balken.
+  Darunter umschaltbar:
+  - Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
+    Prämie usw. mit Rhythmus; "Betrag ändert sich später" für
+    Gehaltserhöhungen (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
+  - Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
+    Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
+- Transaktionen: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
   den CSV-Export der Bank (nur auf dem Gerät, doppelte werden erkannt).
-- Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
-  Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
 - Zahnrad: Sicherung speichern und einspielen, Version.
