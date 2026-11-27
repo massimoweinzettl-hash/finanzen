@@ -72,6 +72,11 @@ input[type="date"], input[type="month"] { -webkit-appearance: none; appearance: 
 input[type="date"]::-webkit-date-and-time-value, input[type="month"]::-webkit-date-and-time-value { text-align: left }
 select { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat }
 label { min-width: 0 }
+input[type="date"], input[type="month"] { width: 100%; min-width: 0 }
+input[type="date"]::-webkit-date-and-time-value, input[type="month"]::-webkit-date-and-time-value { min-height: 1.25em }
+.g2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: end }
+.g2x { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end }
+.g2 > *, .g2x > * { min-width: 0 }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
 button { font: 600 14px var(--body); border-radius: 8px; cursor: pointer; padding: 10px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink) }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
@@ -157,10 +162,11 @@ td button { padding: 4px 8px; font-size: 13px }
         <label class="f1">Kategorie<select id="rf-cat"></select></label>
         <label class="f1">Rhythmus<select id="rf-every"><option value="1">monatlich</option><option value="3">vierteljährlich</option><option value="6">halbjährlich</option><option value="12">jährlich</option></select></label>
       </div>
-      <div class="row">
-        <label class="f1">Erste Zahlung (Monat)<input type="month" id="rf-start"></label>
-        <label class="f1">Endet nach (optional)<input type="month" id="rf-end"></label>
+      <div class="g2">
+        <label>Erste Zahlung<input type="month" id="rf-start"></label>
+        <label>Letzte Zahlung (optional)<input type="month" id="rf-end"></label>
       </div>
+      <span class="small muted">Leer lassen, wenn es unbefristet weiterläuft.</span>
       <div style="display:flex;flex-direction:column;gap:8px;padding-top:10px;border-top:1px solid var(--line)">
         <h3>Betrag ändert sich später</h3>
         <p class="small muted">Für Gehaltserhöhungen (z. B. Stufenaufstieg oder Tariferhöhung im TVöD), Mieterhöhungen oder neue Beiträge: ab welchem Monat gilt welcher neue Betrag. Trag beim Gehalt den Nettobetrag ein.</p>
@@ -177,9 +183,9 @@ td button { padding: 4px 8px; font-size: 13px }
     <div class="block">
       <h2 id="tf-title">Einzelne Buchung eintragen</h2>
       <div class="chips" role="group" aria-label="Art"><button data-act="tftype" data-id="out" aria-pressed="true">Ausgabe</button><button data-act="tftype" data-id="in" aria-pressed="false">Einnahme</button></div>
-      <div class="row">
-        <label class="f1">Datum<input type="date" id="tf-date"></label>
-        <label class="f1">Betrag (€)<input id="tf-amount" inputmode="decimal" autocomplete="off"></label>
+      <div class="g2">
+        <label>Datum<input type="date" id="tf-date"></label>
+        <label>Betrag (€)<input id="tf-amount" inputmode="decimal" autocomplete="off"></label>
       </div>
       <div class="row">
         <label class="f2">Beschreibung<input id="tf-name" autocomplete="off" placeholder="z. B. Einkauf"></label>
@@ -203,11 +209,11 @@ td button { padding: 4px 8px; font-size: 13px }
         <label class="f1">Monatsrate (€)<input id="lf-rate" inputmode="decimal" autocomplete="off"></label>
         <label class="f1">Zinssatz (% p. a.)<input id="lf-int" inputmode="decimal" autocomplete="off" placeholder="z. B. 5,9"></label>
       </div>
-      <div class="row">
-        <label class="f1">Restschuld gilt ab (Monat)<input type="month" id="lf-asof"></label>
-        <label class="f1">Kreditbetrag am Anfang (optional)<input id="lf-orig" inputmode="decimal" autocomplete="off"></label>
-        <label class="f1">Erste Rate (optional)<input type="month" id="lf-first"></label>
+      <div class="g2">
+        <label>Stand der Restschuld<input type="month" id="lf-asof"></label>
+        <label>Erste Rate (optional)<input type="month" id="lf-first"></label>
       </div>
+      <label>Kreditbetrag am Anfang (optional)<input id="lf-orig" inputmode="decimal" autocomplete="off"></label>
       <label>Notiz (optional)<input id="lf-note" autocomplete="off" placeholder="z. B. Sondertilgung erlaubt"></label>
       <div class="row" style="align-items:center"><button class="primary" data-act="lsave">Speichern</button><button data-act="lcancel" id="lf-cancel" hidden>Abbrechen</button><span class="small muted" id="lf-msg">Restschuld und Zinssatz stehen auf dem Kontoauszug oder im Online-Banking. Die Rate wird automatisch jeden Monat als Ausgabe unter „Kredite &amp; Raten“ gezählt, bis der Kredit abbezahlt ist.</span></div>
     </div>
@@ -256,7 +262,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 3;
+  var APP_VERSION = 4;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -569,7 +575,7 @@ td button { padding: 4px 8px; font-size: 13px }
       "<tr><td>" + mname(x.c.from) + "</td><td>" + esc(x.r.name) + exTag(x.r) + '<span class="sub">neu ' + eur(x.c.amount) + " " + EVERY[x.r.every || 1] + '</span></td><td class="r ' + ((x.d > 0) === (x.r.type === "in") ? "pos" : "neg") + '">' + (x.d > 0 ? "+" : "−") + eur(Math.abs(x.d)) + '<span class="sub">pro Monat</span></td></tr>').join("") + "</tbody></table></div>";
   }
   function renderChanges() {
-    $("rf-changes").innerHTML = F.changes.map((c, i) => '<div class="row"><label class="f1">Ab Monat<input type="month" id="ch-from-' + i + '" data-ch="' + i + '" data-k="from" value="' + esc(c.from) + '"></label><label class="f1">Neuer Betrag (€)<input id="ch-amt-' + i + '" inputmode="decimal" autocomplete="off" data-ch="' + i + '" data-k="amount" value="' + esc(c.amount) + '"></label><button class="danger" aria-label="Änderung entfernen" data-act="chdel" data-id="' + i + '">✕</button></div>').join("");
+    $("rf-changes").innerHTML = F.changes.map((c, i) => '<div class="g2x"><label>Ab Monat<input type="month" id="ch-from-' + i + '" data-ch="' + i + '" data-k="from" value="' + esc(c.from) + '"></label><label>Neuer Betrag (€)<input id="ch-amt-' + i + '" inputmode="decimal" autocomplete="off" data-ch="' + i + '" data-k="amount" value="' + esc(c.amount) + '"></label><button class="danger" aria-label="Änderung entfernen" data-act="chdel" data-id="' + i + '">✕</button></div>').join("");
   }
   function resetRecForm() {
     F.changes = []; renderChanges();
