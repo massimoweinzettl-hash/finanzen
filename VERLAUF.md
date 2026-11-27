@@ -30,3 +30,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v23: Saldo 36 Monate in die Zukunft; Kontostand selbst eintragen, dann zeigt der gewählte Monat den voraussichtlichen Kontostand am Monatsende (nur feste Posten, Kredite, Sparen).
 - v24: Beschriftung großer Minus-Balken über der Nulllinie statt über den Monatsnamen.
 - v25: Kontostand-Feld hat einen OK-Knopf und speichert auch beim Verlassen des Felds (iOS-Zahlentastatur hat kein Enter). Wischen im Saldo ersetzt das Feld während der Eingabe nicht mehr. Minuszeichen „−“ wird erkannt.
+- v26: Kontostand als eigener Block ganz oben in der Übersicht (folgt weiter dem gewählten Monat im Saldo).

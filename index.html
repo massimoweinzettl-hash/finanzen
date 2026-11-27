@@ -392,7 +392,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 25;
+  var APP_VERSION = 26;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -752,7 +752,7 @@ td button { padding: 4px 8px; font-size: 13px }
     const sg = v => '<b class="' + (v < 0 ? "neg" : "pos") + '">' + (v > 0 ? "+" : "") + eur(v) + "</b>";
     S.sb = { sm, st };
     if (!S.sbSel || sm.indexOf(S.sbSel) < 0) S.sbSel = cm;
-    let h = '<div class="block"><h2>Saldo pro Monat</h2><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div id="kline">' + kontoHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
+    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div></div><div class="block"><h2>Saldo pro Monat</h2><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, ht = Math.max(none ? 0 : 1.2, Math.abs(t.s) / span * 100), neg = t.s < 0;
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
