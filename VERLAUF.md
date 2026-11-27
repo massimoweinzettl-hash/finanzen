@@ -27,3 +27,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v20: Sparen zählt nicht mehr als Ausgabe, sondern erscheint getrennt als „gespart“ (Entscheidung des Besitzers).
 - v21: Haptik und Schalter aus dem Saldo-Diagramm entfernt, Wischen wieder wie vorher (Besitzer).
 - v22: Schätzung aus dem Schnitt der letzten 6 Monate wieder entfernt (Besitzer). Planung = feste Posten + Kreditraten + selbst eingetragenes Netto.
+- v23: Saldo 36 Monate in die Zukunft; Kontostand selbst eintragen, dann zeigt der gewählte Monat den voraussichtlichen Kontostand am Monatsende (nur feste Posten, Kredite, Sparen).
