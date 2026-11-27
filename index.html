@@ -203,7 +203,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .spr .sb i { border-radius: 4px 4px 0 0 }
 .spr .spv { position: absolute; left: 0; right: 0; top: 2px; font-size: 9.5px; color: var(--muted); text-align: center; white-space: nowrap; letter-spacing: -.02em }
 .sankey { width: 100%; height: auto; display: block }
-.sankey .sk { font: 11px var(--body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round }
+.sankey .sk { font: 11px var(--body); fill: var(--ink) } .sankey .skv { fill: var(--muted) }
 .mlist { display: flex; flex-direction: column }
 .mrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 10px 4px; font-weight: 400; width: 100% }
 .mrow:last-child { border-bottom: 0 }
@@ -387,7 +387,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 38;
+  var APP_VERSION = 39;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -919,25 +919,26 @@ td button { padding: 4px 8px; font-size: 13px }
     }
     const L = ci.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "in" })), R = co.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "out" }));
     if (ti > to) R.push({ v: ti - to, col: "var(--good)", name: "Übrig" }); else if (to > ti) L.push({ v: to - ti, col: "var(--bad)", name: "Fehlbetrag" });
-    const tot = Math.max(ti, to), W = 360, NW = 8, MINS = 17, G = 3, cx = 150;
+    /* v39: Ausgaben-Beschriftung rechts NEBEN den Knoten (nicht mehr über den Bändern), ohne weißen Rand um die Schrift */
+    const tot = Math.max(ti, to), W = 360, NW = 8, MINS = 17, G = 3, cx = 96, RX = 176;
     const usable = Math.max(200, R.length * 22), k = usable / tot;
-    const lay = list => { let y = 0; list.forEach(n => { n.h = Math.max(1.5, n.v * k); n.y = y; y += Math.max(n.h, MINS) + G; }); return y; };
-    const HL = lay(L), HR = lay(R), H = Math.max(HL, HR, tot * k) + 4, cy = (H - tot * k) / 2;
+    const lay = (list, mn) => { let y = 0; list.forEach(n => { n.h = Math.max(1.5, n.v * k); n.y = y; n.mn = mn; y += Math.max(n.h, mn) + G; }); return y; };
+    const HL = lay(L, 30), HR = lay(R, MINS), H = Math.max(HL, HR, tot * k) + 4, cy = (H - tot * k) / 2;
     const band = (x0, y0, h0, x1, y1, h1, col) => { const m = (x0 + x1) / 2; return '<path d="M' + x0 + "," + y0 + "C" + m + "," + y0 + " " + m + "," + y1 + " " + x1 + "," + y1 + "L" + x1 + "," + (y1 + h1) + "C" + m + "," + (y1 + h1) + " " + m + "," + (y0 + h0) + " " + x0 + "," + (y0 + h0) + 'Z" fill="' + col + '" opacity=".32"/>'; };
     let sv = '<svg class="sankey" viewBox="0 0 ' + W + " " + H.toFixed(0) + '" role="img" aria-label="Geldfluss von Einnahmen zu Ausgaben">';
     let off = 0;
     L.forEach(n => { const hh = n.v * k; sv += band(NW, n.y, n.h, cx, cy + off, hh, n.col); off += hh; });
     off = 0;
-    R.forEach(n => { const hh = n.v * k; sv += band(cx + NW, cy + off, hh, W - NW, n.y, n.h, n.col); off += hh; });
+    R.forEach(n => { const hh = n.v * k; sv += band(cx + NW, cy + off, hh, RX, n.y, n.h, n.col); off += hh; });
     sv += '<rect x="' + cx + '" y="' + cy.toFixed(1) + '" width="' + NW + '" height="' + (tot * k).toFixed(1) + '" rx="2" fill="var(--muted)"/>';
-    const node = (n, x, anchor, tx) => {
+    const node = (n, x, anchor, tx, two) => {
       const act = n.c ? ' data-act="copen" data-id="' + esc(n.c) + '" data-ty="' + n.ty + '" style="cursor:pointer"' : "";
       const val = S.sunit === "pct" ? pct(n.v, base) : eur0(n.v);
       return "<g" + act + '><rect x="' + x + '" y="' + n.y.toFixed(1) + '" width="' + NW + '" height="' + n.h.toFixed(1) + '" rx="2" fill="' + n.col + '"/>' +
-        '<text class="sk" x="' + tx + '" y="' + (n.y + Math.max(n.h, MINS) / 2 + 4).toFixed(1) + '" text-anchor="' + anchor + '"><tspan font-weight="600">' + esc(n.name.length > 24 ? n.name.slice(0, 22) + "…" : n.name) + "</tspan> " + val + "<title>" + esc(n.name) + ": " + eur(n.v) + "</title></text></g>";
+        '<text class="sk" x="' + tx + '" y="' + (n.y + Math.max(n.h, n.mn) / 2 + (two ? -2 : 4)).toFixed(1) + '" text-anchor="' + anchor + '"><tspan font-weight="600">' + esc(two ? (n.name.length > 13 ? n.name.slice(0, 12).trim() + "…" : n.name) : n.name.length > 20 ? n.name.slice(0, 18).trim() + "…" : n.name) + "</tspan>" + (two ? '<tspan class="skv" x="' + tx + '" dy="13">' + val + "</tspan>" : '<tspan class="skv"> ' + val + "</tspan>") + "<title>" + esc(n.name) + ": " + eur(n.v) + "</title></text></g>";
     };
-    L.forEach(n => { sv += node(n, 0, "start", NW + 5); });
-    R.forEach(n => { sv += node(n, W - NW, "end", W - NW - 5); });
+    L.forEach(n => { sv += node(n, 0, "start", NW + 5, true); });
+    R.forEach(n => { sv += node(n, RX, "start", RX + NW + 6); });
     sv += "</svg>";
     return h + sv + '<p class="small muted">Einnahmen ' + eur(ti) + " · Ausgaben " + eur(to) + (S.sunit === "pct" ? " · % = Anteil an den Einnahmen" : "") + ". Kategorie antippen für alle Einträge.</p></div>";
   }
