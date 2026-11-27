@@ -31,3 +31,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v24: Beschriftung großer Minus-Balken über der Nulllinie statt über den Monatsnamen.
 - v25: Kontostand-Feld hat einen OK-Knopf und speichert auch beim Verlassen des Felds (iOS-Zahlentastatur hat kein Enter). Wischen im Saldo ersetzt das Feld während der Eingabe nicht mehr. Minuszeichen „−“ wird erkannt.
 - v26: Kontostand als eigener Block ganz oben in der Übersicht (folgt weiter dem gewählten Monat im Saldo).
+- v27/v28: Kredit „Vorzeitig abgelöst“ (Doc loan: `paidoff` Monat, `payoff` Ablösebetrag optional). Raten davor bleiben, im Ablösemonat Ablösebetrag (sonst Rate + Restschuld), danach nichts. Rücknehmbar. Saldo: „Heute“-Knopf springt zum laufenden Monat; Monat der letzten planmäßigen Kreditrate ist unter dem Balken mit „Ende“ markiert und oben genannt. `num()` erkennt „7.000“ als Tausender.

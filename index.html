@@ -190,7 +190,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .sread .sm { font-size: 13px; color: var(--muted); font-weight: 600 } .sread b { font: 600 24px var(--display) } .sread .si { font-size: 12px; color: var(--muted) }
 .sbars { gap: 4px; height: 200px }
 .sbl { gap: 4px }
-.sbl span { white-space: nowrap; line-height: 1.3 } .sbl b { display: block; font-weight: 600; color: var(--muted) }
+.sbl span { white-space: nowrap; line-height: 1.3 } .sbl em.lend { display: block; font-size: 9px; font-weight: 600; font-style: normal; color: var(--accent); background: var(--sunken); border-radius: 4px; margin: 2px 1px 0 } .sread .si.lend { color: var(--accent); font-weight: 600 } .sbl b { display: block; font-weight: 600; color: var(--muted) }
 .snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; opacity: .6 }
 .spr { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; height: 110px; border-bottom: 1px solid var(--line) }
 .spr .sb i { border-radius: 4px 4px 0 0 }
@@ -362,7 +362,7 @@ td button { padding: 4px 8px; font-size: 13px }
   "use strict";
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const num = s => { s = String(s == null ? "" : s).trim().replace(/[€\s]/g, "").replace(/[−–]/g, "-"); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); if (s === "") return null; const n = parseFloat(s); return isFinite(n) ? n : null; };
+  const num = s => { s = String(s == null ? "" : s).trim().replace(/[€\s]/g, "").replace(/[−–]/g, "-"); if (s.indexOf(",") >= 0 || /^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "").replace(",", "."); if (s === "") return null; const n = parseFloat(s); return isFinite(n) ? n : null; };
   const EUR = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
   const eur = n => EUR.format(n || 0);
   const eur0 = n => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
@@ -392,7 +392,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 26;
+  var APP_VERSION = 28;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -645,12 +645,19 @@ td button { padding: 4px 8px; font-size: 13px }
     while (b > 0.005 && pays.length < 720) { const z = b * i, pay = Math.min(rate, b + z); b = b + z - pay; int += z; pays.push({ k, pay, z, bal: b }); k++; }
     return { pays, int, end: pays.length ? pays[pays.length - 1].k : null };
   }
+  /* Vorzeitig abgelöst (paidoff = Monat, payoff = Ablösebetrag optional): davor alles wie geplant, im Monat der Ablösung
+     der Ablösebetrag (sonst Rate + Restschuld), danach nichts mehr. Vergangene Monate bleiben unverändert. */
   function loanPay(l, k, sc) {
+    if (l.paidoff) { const p = mi(l.paidoff); if (k > p) return 0; if (k === p) return l.payoff > 0 ? l.payoff : loanPay0(l, k, sc) + balAt0(l, k + 1, sc); }
+    return loanPay0(l, k, sc);
+  }
+  function balAt(l, k, sc) { return l.paidoff && k > mi(l.paidoff) ? 0 : balAt0(l, k, sc); }
+  function loanPay0(l, k, sc) {
     const a = mi(l.asOf);
     if (k < a) return l.first && k >= mi(l.first) ? l.rate : 0;
     const p = sc.pays[k - a]; return p ? p.pay : (sc.never ? l.rate : 0);
   }
-  function balAt(l, k, sc) { const a = mi(l.asOf); if (sc.balloon && k <= a) return sc.start; if (k <= a || sc.never) return l.balance; const p = sc.pays[k - a - 1]; return p ? p.bal : 0; }
+  function balAt0(l, k, sc) { const a = mi(l.asOf); if (sc.balloon && k <= a) return sc.start; if (k <= a || sc.never) return l.balance; const p = sc.pays[k - a - 1]; return p ? p.bal : 0; }
   /* Monate mit eingespieltem Kontoauszug: dort zählen die echten Buchungen, feste Posten und Kreditraten nicht zusätzlich
      (Wunsch des Besitzers: nichts doppelt). Für Monate ohne Kontoauszug planen die festen Posten. */
   const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
@@ -750,15 +757,17 @@ td button { padding: 4px 8px; font-size: 13px }
     const st = sm.map(totals), pmax = Math.max(0, ...st.map(t => t.s)), nmax = Math.max(0, ...st.map(t => -t.s)), span = Math.max(1, pmax + nmax), zero = pmax / span * 100;
     let pb = 0, fw = 0; sm.forEach((m, j) => { const k = mi(m); if (k < kc && k >= kc - 12) pb += st[j].s; if (k > kc && k <= kc + 12) fw += st[j].s; });
     const sg = v => '<b class="' + (v < 0 ? "neg" : "pos") + '">' + (v > 0 ? "+" : "") + eur(v) + "</b>";
-    S.sb = { sm, st };
+    /* Planmäßiges Kreditende (letzte Rate ohne Sonderzahlungen; bei Ablösung der Ablösemonat) als Markierung im Saldo */
+    const lend = {}; loans().forEach(l => { const sc = sched(l); if (sc.never) return; const e = l.paidoff ? l.paidoff : sc.end != null ? im(sc.end) : null; if (e) (lend[e] = lend[e] || []).push(l.name); });
+    S.sb = { sm, st, lend };
     if (!S.sbSel || sm.indexOf(S.sbSel) < 0) S.sbSel = cm;
-    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div></div><div class="block"><h2>Saldo pro Monat</h2><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
+    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div></div><div class="block"><div class="grphead" style="align-items:center"><h2>Saldo pro Monat</h2><button class="ghost" data-act="stoday">Heute</button></div><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, ht = Math.max(none ? 0 : 1.2, Math.abs(t.s) / span * 100), neg = t.s < 0;
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
         (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht > 86 ? zero.toFixed(2) + "% - 14px" : (zero + ht).toFixed(2) + "% + 2px") : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
     }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * 34 - 2) + 'px"></span></div>' +
-      '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div></div>" +
+      '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + (lend[m] ? '<em class="lend" title="Kredit endet: ' + esc(lend[m].join(", ")) + '">Ende</em>' : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
       '<p class="small muted">Kommende Monate: nur feste Posten und Kreditraten.</p></div>';
@@ -799,7 +808,7 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   function sreadHtml(m) {
     const j = S.sb ? S.sb.sm.indexOf(m) : -1, t = j >= 0 ? S.sb.st[j] : totals(m), none = !t.i && !t.o;
-    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o) + (t.sp ? " · gespart " + eur(t.sp) : "")) + '</span></div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
+    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o) + (t.sp ? " · gespart " + eur(t.sp) : "")) + '</span>' + (S.sb && S.sb.lend && S.sb.lend[m] ? '<span class="si lend">Letzte Kreditrate: ' + esc(S.sb.lend[m].join(", ")) + "</span>" : "") + '</div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
   }
   function sbPick() {
     const sc = $("sscroll"); if (!sc || !sc.clientWidth) return;
@@ -1120,11 +1129,12 @@ td button { padding: 4px 8px; font-size: 13px }
     }
     let tb = 0, tr = 0, ti = 0, last = null, never = false;
     const cards = L.sort((a, b) => b.balance - a.balance).map(l => {
-      const sc = sched(l), bal = balAt(l, k, sc), pay = loanPay(l, k, sc), rest = sc.pays.filter(p => p.k >= k), ri = rest.reduce((a, p) => a + p.z, 0);
-      tb += bal; tr += pay; ti += ri; if (sc.never) never = true; else if (sc.end != null && (last == null || sc.end > last)) last = sc.end;
+      if (l.paidoff && mi(l.paidoff) < k) return '<div class="block"><div class="grphead"><h3>' + esc(l.name) + exTag(l) + '</h3><span class="small muted">' + esc(l.lender || "") + '</span></div><p>Vorzeitig abgelöst im <b>' + mname(l.paidoff) + '</b>' + (l.payoff > 0 ? " mit " + eur(l.payoff) : "") + '. Die Raten davor bleiben in den Monaten stehen, danach fällt nichts mehr an.</p><div class="row"><button data-act="lpaidundo" data-id="' + esc(l.id) + '">Ablösung zurücknehmen</button><button class="danger" data-act="ldel" data-id="' + esc(l.id) + '">Löschen</button></div></div>';
+      const sc = sched(l), bal = balAt(l, k, sc), pay = loanPay(l, k, sc), rest = sc.pays.filter(p => p.k >= k && (!l.paidoff || p.k <= mi(l.paidoff))), ri = rest.reduce((a, p) => a + p.z, 0), le = l.paidoff ? mi(l.paidoff) : sc.end;
+      tb += bal; tr += pay; ti += ri; if (sc.never) never = true; else if (le != null && (last == null || le > last)) last = le;
       let h = '<div class="block"><div class="grphead"><h3>' + esc(l.name) + exTag(l) + '</h3><span class="small muted">' + esc(l.lender || "") + "</span></div>";
       if (sc.never) return h + '<p class="note">Die Rate von ' + eur(l.rate) + ' deckt nicht einmal die monatlichen Zinsen von ' + eur(l.balance * l.interest / 1200) + '. Bitte Restschuld, Rate und Zinssatz prüfen.</p>' + loanBtns(l) + "</div>";
-      h += '<div class="stats"><div><b>' + eur(bal) + '</b><span>Restschuld jetzt</span></div><div><b>' + eur(l.rate) + '</b><span>Rate pro Monat</span></div><div><b>' + String(l.interest || 0).replace(".", ",") + ' %</b><span>Zinssatz p. a.</span></div><div><b>' + (sc.end != null ? mshort(im(sc.end)) + " " + im(sc.end).slice(0, 4) : "–") + '</b><span>letzte Rate</span></div></div>';
+      h += '<div class="stats"><div><b>' + eur(bal) + '</b><span>Restschuld jetzt</span></div><div><b>' + eur(l.rate) + '</b><span>Rate pro Monat</span></div><div><b>' + String(l.interest || 0).replace(".", ",") + ' %</b><span>Zinssatz p. a.</span></div><div><b>' + (le != null ? mshort(im(le)) + " " + im(le).slice(0, 4) : "–") + '</b><span>letzte Rate</span></div></div>';
       if (l.original > 0) { const pct = Math.max(0, Math.min(100, (1 - bal / l.original) * 100)); h += '<div class="prog" role="img" aria-label="' + Math.round(pct) + ' Prozent getilgt"><i style="width:' + pct.toFixed(1) + '%"></i></div><p class="small muted">' + Math.round(pct) + " % von " + eur0(l.original) + " getilgt</p>"; }
       h += "<p>Noch <b>" + rest.length + " Raten</b>, davon <b>" + eur(ri) + "</b> Zinsen.</p>";
       if (sc.balloon) h += '<p class="small muted">Davon Schlussrate ' + eur(l.balloon) + " im " + mname(l.end) + ". Restschuld aus den offenen Zahlungen und dem Effektivzins berechnet.</p>";
@@ -1133,13 +1143,15 @@ td button { padding: 4px 8px; font-size: 13px }
         h += '<span class="hint up" style="align-self:flex-start;font-size:13px;font-weight:600;padding:4px 9px;border-radius:6px;background:var(--good-soft);color:var(--good)">Mit ' + eur(S.extra) + " extra: fertig " + (sx.end != null ? mname(im(sx.end)) : "–") + ", " + (rest.length - rx.length) + " Monate früher, " + eur(ri - ix) + " Zinsen gespart</span>";
       }
       if (l.note) h += '<p class="small muted">' + esc(l.note) + "</p>";
+      if (l.paidoff) return h + '<p class="note">Vorzeitige Ablösung im ' + mname(l.paidoff) + (l.payoff > 0 ? " mit " + eur(l.payoff) : "") + ' eingetragen. Danach fallen keine Raten mehr an.</p><div class="row"><button data-act="ledit" data-id="' + esc(l.id) + '">Ändern</button><button data-act="lpaidundo" data-id="' + esc(l.id) + '">Ablösung zurücknehmen</button></div></div>';
+      if (S.lpay === l.id) return h + '<div class="lpay"><p class="small muted">Ab dem Monat nach der Ablösung fallen keine Raten mehr an. Frühere Monate bleiben, wie sie sind.</p><div class="row"><label>Abgelöst im<input type="month" id="lp-m" value="' + curMonth() + '"></label><label>Ablösebetrag (optional)<input id="lp-a" inputmode="decimal" autocomplete="off" placeholder="' + eur(bal) + '"></label></div><div class="row"><button class="primary" data-act="lpaidsave" data-id="' + esc(l.id) + '">Ablösung speichern</button><button data-act="lpaid" data-id="">Abbrechen</button></div></div></div>';
       return h + loanBtns(l) + "</div>";
     }).join("");
     $("loanstats").innerHTML = '<h2>Deine Kredite</h2><div class="stats"><div><b>' + eur(tb) + '</b><span>Restschuld gesamt</span></div><div><b>' + eur(tr) + '</b><span>Raten diesen Monat</span></div><div><b>' + eur(ti) + '</b><span>Zinsen bis zum Ende</span></div><div><b>' + (never ? "–" : last != null ? mshort(im(last)) + " " + im(last).slice(0, 4) : "–") + '</b><span>schuldenfrei ab</span></div></div>' +
       '<p class="small muted">Berechnet mit gleichbleibender Rate und monatlicher Verzinsung. Der Kontoauszug deiner Bank kann um ein paar Euro abweichen.</p>';
     $("loanlist").innerHTML = cards;
   }
-  const loanBtns = l => '<div class="row"><button data-act="ledit" data-id="' + esc(l.id) + '">Ändern</button><button class="danger" data-act="ldel" data-id="' + esc(l.id) + '">Löschen</button></div>';
+  const loanBtns = l => '<div class="row"><button data-act="ledit" data-id="' + esc(l.id) + '">Ändern</button><button data-act="lpaid" data-id="' + esc(l.id) + '">Vorzeitig abgelöst</button><button class="danger" data-act="ldel" data-id="' + esc(l.id) + '">Löschen</button></div>';
   function resetLoanForm() {
     F.ledit = null; ["lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"].forEach(id => { $(id).value = ""; });
     $("lf-asof").value = curMonth(); $("lf-title").textContent = "Laufenden Kredit eintragen"; $("lf-cancel").hidden = true;
@@ -1288,9 +1300,17 @@ td button { padding: 4px 8px; font-size: 13px }
       const first = $("lf-first").value || null;
       if (first && mi(first) > mi(asOf)) { $("lf-msg").textContent = "Die erste Rate liegt nach dem Stand der Restschuld."; return; }
       const idx = F.ledit || rid("l"), old = S.loans[idx];
-      put(idx, { kind: "loan", name, lender: $("lf-lender").value.trim(), balance, rate, interest, asOf, original: num($("lf-orig").value) || null, first, balloon, end: balloon ? end : null, note: $("lf-note").value.trim(), example: old ? !!old.example : false });
+      put(idx, { kind: "loan", name, lender: $("lf-lender").value.trim(), balance, rate, interest, asOf, original: num($("lf-orig").value) || null, first, balloon, end: balloon ? end : null, note: $("lf-note").value.trim(), example: old ? !!old.example : false, paidoff: old && old.paidoff || null, payoff: old && old.payoff || null });
       $("lf-msg").textContent = "„" + name + "“ gespeichert."; resetLoanForm(); renderAll();
     }
+    else if (a === "stoday") { const sc = $("sscroll"), cur = sc && sc.querySelector('.sb[aria-current="true"]'); if (!cur) return; const r = cur.getBoundingClientRect(), rs = sc.getBoundingClientRect(); S.sbMoved = false; sc.scrollTo({ left: Math.max(0, sc.scrollLeft + (r.left + r.width / 2) - (rs.left + sc.clientWidth / 2)), behavior: "smooth" }); }
+    else if (a === "lpaid") { S.lpay = id || null; renderLoan(); }
+    else if (a === "lpaidsave") {
+      const l = S.loans[id], m = $("lp-m").value, v = num($("lp-a").value); if (!l || !isMon(m)) return;
+      if (mi(m) < mi(l.first || l.asOf)) { $("lp-m").setCustomValidity("Vor der ersten Rate"); $("lp-m").reportValidity(); return; }
+      S.lpay = null; put(id, Object.assign({}, l, { paidoff: m, payoff: v > 0 ? Math.round(v * 100) / 100 : null })); haptic(); renderAll();
+    }
+    else if (a === "lpaidundo") { const l = S.loans[id]; if (l) { const n = Object.assign({}, l); delete n.paidoff; delete n.payoff; put(id, n); renderAll(); } }
     else if (a === "lcancel") { resetLoanForm(); $("lf-msg").textContent = ""; }
     else if (a === "ledit") {
       const l = S.loans[id]; if (!l) return; F.ledit = id; const dc = v => v == null ? "" : String(v).replace(".", ",");
