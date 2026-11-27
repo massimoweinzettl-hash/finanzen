@@ -30,16 +30,15 @@ WO FINDE ICH WAS?
   Einträge darin. Geldfluss (Sankey): Einnahmen → Ausgaben, Monat/Jahr, € / %,
   mit Sparquote und Sparrate pro Monat. Kommende Monate schätzen Alltagsausgaben
   aus dem Schnitt der letzten 6 Monate.
-- Budgets: Monatslimits pro Kategorie (z. B. Shopping 150 €) mit Balken.
-  Darunter umschaltbar:
-  - Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
-    Prämie usw. mit Rhythmus; "Betrag ändert sich später" für
-    Gehaltserhöhungen (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
-  - Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
-    Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
+- Fixkosten: Gehalt, Miete, Versicherungen, Jahressonderzahlung, Prämie usw.
+  mit Rhythmus; "Betrag ändert sich später" für Gehaltserhöhungen
+  (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
+- Abos: alles in der Kategorie "Abos & Mitgliedschaften", mit Summe pro Monat und Jahr.
+- Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
+  Rechner für Sondertilgung, vorzeitige Ablösung. Raten zählen automatisch als Ausgabe.
 - Transaktionen: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
   den CSV-Export der Bank (nur auf dem Gerät, doppelte werden erkannt).
 - Zahnrad: Sicherung speichern und einspielen, Version.
 
-Kredit vorzeitig ablösen: Budgets → Kredite → beim Kredit „Vorzeitig abgelöst“ → Monat und (optional) Ablösebetrag → „Ablösung speichern“. Frühere Raten bleiben stehen. Mit „Ablösung zurücknehmen“ rückgängig.
+Kredit vorzeitig ablösen: Kredite → beim Kredit „Vorzeitig abgelöst“ → Monat und (optional) Ablösebetrag → „Ablösung speichern“. Frühere Raten bleiben stehen. Mit „Ablösung zurücknehmen“ rückgängig.
 Saldo: „Heute“ springt zum laufenden Monat. „Ende“ unter einem Monat = dort ist die letzte Rate eines Kredits.

@@ -136,7 +136,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .grphead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap }
 .prog { height: 10px; background: var(--sunken); border-radius: 5px; overflow: hidden }
 .prog i { display: block; height: 100%; background: var(--good) }
-@media (max-width: 480px) { .tabs button { font-size: 13px; padding-inline: 2px } }
+@media (max-width: 480px) { .tabs button { flex: 1 1 auto; font-size: 12.5px; padding-inline: 3px } }
 .gear { border: 0; background: none; padding: 6px; margin: -6px 0 -6px -6px; color: var(--ink); display: inline-flex }
 .gear svg { width: 24px; height: 24px }
 .top .tl { display: flex; align-items: center; gap: 10px }
@@ -246,7 +246,9 @@ td button { padding: 4px 8px; font-size: 13px }
   </div>
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="sum" aria-selected="true">Übersicht<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-    <button role="tab" data-tab="bud" aria-selected="false">Budgets<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="fix" aria-selected="false">Fixkosten<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="abo" aria-selected="false">Abos<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="loan" aria-selected="false">Kredite<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
     <button role="tab" data-tab="tx" aria-selected="false">Transaktionen<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
   </div>
   <div id="notice" class="note" hidden></div>
@@ -255,21 +257,6 @@ td button { padding: 4px 8px; font-size: 13px }
   <div class="tabclip">
   <section class="tab" id="tab-sum"><p class="empty">Hier erscheint deine Monatsübersicht, sobald deine Daten geladen sind.</p></section>
 
-  <section class="tab" id="tab-bud" hidden>
-    <div class="seg" role="group" aria-label="Bereich" style="align-self:flex-start"><button data-act="bsub" data-id="lim" aria-pressed="true">Budgets</button><button data-act="bsub" data-id="rec" aria-pressed="false">Fix &amp; Abos</button><button data-act="bsub" data-id="loan" aria-pressed="false">Kredite</button></div>
-    <div id="budlim" style="display:flex;flex-direction:column;gap:16px">
-      <div class="block" id="budview"></div>
-      <div class="block">
-        <h2 id="bf-title">Budget festlegen</h2>
-        <div class="row">
-          <label class="f2">Kategorie<select id="bf-cat"></select></label>
-          <label class="f1">Limit pro Monat (€)<input id="bf-amount" inputmode="decimal" autocomplete="off"></label>
-        </div>
-        <span class="small muted" id="bf-hint"></span>
-        <div class="row" style="align-items:center"><button class="primary" data-act="bsave">Speichern</button><span class="small muted" id="bf-msg"></span></div>
-      </div>
-    </div>
-  </section>
 
   <section class="tab" id="tab-rec" hidden>
     <div class="block" id="recstats"></div>
@@ -389,14 +376,15 @@ td button { padding: 4px 8px; font-size: 13px }
     { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "shop", name: "Einkäufe & Shopping", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
   ];
 
-  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, incov: {}, konto: null, tab: "sum", bsub: "lim", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
+  const TABS = ["sum", "fix", "abo", "loan", "tx"], tabEl = t => $("tab-" + (t === "fix" || t === "abo" ? "rec" : t));
+  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, incov: {}, konto: null, tab: "sum", bsub: "lim", rmode: "fix", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
   const F = { changes: [], rtype: "out", redit: null, ttype: "out", tedit: null, ledit: null };
 
   /* ---------- Speicher: nur auf diesem Gerät (wie im Trainingslog) ----------
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 33;
+  var APP_VERSION = 34;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -759,7 +747,7 @@ td button { padding: 4px 8px; font-size: 13px }
   function renderSum() {
     const el = $("tab-sum"); if (!S.ready) return;
     if (!recs().length && !txs().length && !loans().length) {
-      el.innerHTML = '<div class="block"><h2>Noch keine Einträge</h2><p class="muted">Am schnellsten geht es mit deinen festen Posten: Gehalt, Miete, Strom, Handy, Versicherungen, Abos. Trag sie einmal unter Budgets → „Fix &amp; Abos“ ein, dann rechnet die App jeden Monat automatisch mit. Einzelne Ausgaben kommen unter „Transaktionen“ dazu.</p>' +
+      el.innerHTML = '<div class="block"><h2>Noch keine Einträge</h2><p class="muted">Am schnellsten geht es mit deinen festen Posten: Gehalt, Miete, Strom, Handy, Versicherungen, Abos. Trag sie einmal unter „Fixkosten“ und „Abos“ ein, dann rechnet die App jeden Monat automatisch mit. Einzelne Ausgaben kommen unter „Transaktionen“ dazu.</p>' +
         '<div class="row"><button class="primary" data-act="gosub" data-id="rec">Feste Posten eintragen</button><button data-act="exload">Erst mal mit Beispieldaten ansehen</button></div><p class="small muted">Beispieldaten sind klar markiert und lassen sich mit einem Klick wieder entfernen.</p></div>';
       return;
     }
@@ -1028,7 +1016,9 @@ td button { padding: 4px 8px; font-size: 13px }
     let s = 0; for (let j = 1; j <= 3; j++) monthItems(im(k - j)).forEach(x => { if (x.type === "out" && x.cat === c) s += x.amount; });
     $("bf-hint").textContent = "Zum Vergleich: in den letzten 3 Monaten im Schnitt " + eur(s / 3) + " pro Monat." + (S.budgets[c] ? " Aktuelles Limit: " + eur(S.budgets[c]) + "." : "");
   }
-  function renderBud() {
+  /* v34: Reiter „Budgets“ samt Monatslimits entfernt (Wunsch des Besitzers). Doc `budgets` bleibt in der Sicherung erhalten, wird aber nicht mehr angezeigt. */
+  function renderBud() {}
+  function renderBudOld() {
     if (!S.ready) return;
     fillCats("bf-cat", "out"); budHint();
     const m = S.month, keys = Object.keys(S.budgets), by = {};
@@ -1058,12 +1048,14 @@ td button { padding: 4px 8px; font-size: 13px }
     $("recstats").innerHTML = '<h2>Feste Posten pro Monat</h2><div class="stats"><div><b class="pos">' + eur(fi) + '</b><span>feste Einnahmen</span></div><div><b>' + eur(fo) + '</b><span>feste Ausgaben</span></div><div><b class="' + (fi - fo < 0 ? "neg" : "pos") + '">' + eur(fi - fo) + '</b><span>frei für alles andere</span></div></div>' +
       '<div class="stats" style="padding-top:10px;border-top:1px solid var(--line)"><div><b class="pos">' + eur0(yearSum(m.slice(0, 4), "in")) + '</b><span>feste Einnahmen ' + m.slice(0, 4) + ', mit Sonderzahlungen und Erhöhungen</span></div><div><b>' + eur0(yearSum(m.slice(0, 4), "out")) + '</b><span>feste Ausgaben ' + m.slice(0, 4) + '</span></div></div>' +
       (lr ? '<p class="small muted">Darin enthalten: ' + eur(lr) + ' Kreditraten aus dem Tab „Kredite“.</p>' : "") + '<p class="small muted">Jährliche und vierteljährliche Beträge sind hier auf den Monat umgerechnet. In der Übersicht erscheinen sie im Monat, in dem sie wirklich gezahlt werden.</p>' + upcoming(m);
-    fillCats("rf-cat", F.rtype);
+    const keep = $("rf-cat").value; fillCats("rf-cat", F.rtype); if (keep) $("rf-cat").value = keep; if (!$("rf-cat").value) $("rf-cat").selectedIndex = 0;
     if (!$("rf-start").value) $("rf-start").value = m;
-    const all = recs(), groups = {};
+    const abo = S.rmode === "abo", all = recs().filter(r => (r.cat === "abo") === abo), groups = {};
+    if (abo) { const aa = all.filter(r => active(r, m)), pm = aa.reduce((a, r) => a + perMonth(r), 0);
+      $("recstats").innerHTML = '<h2>Abos &amp; Mitgliedschaften</h2><div class="stats"><div><b>' + eur(pm) + '</b><span>pro Monat</span></div><div><b>' + eur0(pm * 12) + '</b><span>pro Jahr</span></div><div><b>' + aa.length + '</b><span>laufende Abos</span></div></div><p class="small muted">Jährliche Abos sind auf den Monat umgerechnet. Alle anderen festen Posten stehen unter „Fixkosten“.</p>'; }
     all.forEach(r => { (groups[r.cat] = groups[r.cat] || []).push(r); });
     const order = cats().map(c => c.id).filter(id => groups[id]).concat(Object.keys(groups).filter(id => !cats().some(c => c.id === id)));
-    if (!all.length) { $("reclist").innerHTML = '<p class="empty">Noch keine festen Posten. Trag oben z. B. dein Gehalt und deine Miete ein.</p>'; return; }
+    if (!all.length) { $("reclist").innerHTML = '<p class="empty">' + (abo ? "Noch keine Abos. Trag oben z. B. Streaming oder Fitnessstudio ein." : "Noch keine festen Posten. Trag oben z. B. dein Gehalt und deine Miete ein.") + "</p>"; return; }
     $("reclist").innerHTML = order.map(cid => {
       const list = groups[cid].sort((a, b) => perMonth(b) - perMonth(a)), sum = list.filter(r => active(r, m)).reduce((a, r) => a + perMonth(r) * (r.type === "in" ? 1 : 1), 0);
       return '<div class="block"><div class="grphead"><h3>' + esc(catName(cid)) + '</h3><span class="small muted">' + eur(sum) + " / Monat</span></div><div class=\"tablewrap\"><table><tbody>" + list.map(r => {
@@ -1085,10 +1077,17 @@ td button { padding: 4px 8px; font-size: 13px }
   function renderChanges() {
     $("rf-changes").innerHTML = F.changes.map((c, i) => '<div class="g2x"><label>Ab Monat<input type="month" id="ch-from-' + i + '" data-ch="' + i + '" data-k="from" value="' + esc(c.from) + '"></label><label>Neuer Betrag (€)<input id="ch-amt-' + i + '" inputmode="decimal" autocomplete="off" data-ch="' + i + '" data-k="amount" value="' + esc(c.amount) + '"></label><button class="danger" aria-label="Änderung entfernen" data-act="chdel" data-id="' + i + '">✕</button></div>').join("");
   }
+  /* Fixkosten- und Abo-Reiter teilen sich Formular und Liste (#tab-rec); S.rmode filtert: „abo“ = Kategorie Abos & Mitgliedschaften */
+  function recModeForm() {
+    const abo = S.rmode === "abo"; $("rf-title").textContent = abo ? "Abo anlegen" : "Wiederkehrenden Posten anlegen";
+    const chips = document.querySelector("#tab-rec .chips"); if (chips) chips.hidden = abo; $("rf-name").placeholder = abo ? "z. B. Netflix, Fitnessstudio" : "z. B. Gehalt, Miete";
+    if (abo) { F.rtype = "out"; press("rftype", "out"); fillCats("rf-cat", "out"); $("rf-cat").value = "abo"; }
+    else if ($("rf-cat").value === "abo") { fillCats("rf-cat", F.rtype); $("rf-cat").selectedIndex = 0; }
+  }
   function resetRecForm() {
     F.changes = []; renderChanges();
     F.redit = null; ["rf-name", "rf-amount", "rf-end", "rf-note"].forEach(id => { $(id).value = ""; });
-    $("rf-start").value = curMonth(); $("rf-every").value = "1"; $("rf-title").textContent = "Wiederkehrenden Posten anlegen"; $("rf-cancel").hidden = true;
+    $("rf-start").value = curMonth(); $("rf-every").value = "1"; $("rf-cancel").hidden = true; recModeForm();
   }
 
   /* ---------- Buchungen ---------- */
@@ -1257,14 +1256,13 @@ td button { padding: 4px 8px; font-size: 13px }
   /* ---------- Rendern & Events ---------- */
   function renderAll() { backupWarn(); renderSum(); renderBud(); renderRec(); renderTx(); renderLoan(); refreshSheet(); }
   function showTab(t) {
-    if (t === "rec" || t === "loan" || t === "lim") { S.bsub = t; t = "bud"; }
-    if (!["sum", "bud", "tx"].includes(t)) t = "sum";
-    S.tab = t;
-    $("tab-sum").hidden = t !== "sum"; $("tab-tx").hidden = t !== "tx"; $("tab-bud").hidden = t !== "bud";
-    $("budlim").hidden = S.bsub !== "lim"; $("tab-rec").hidden = !(t === "bud" && S.bsub === "rec"); $("tab-loan").hidden = !(t === "bud" && S.bsub === "loan");
-    press("bsub", S.bsub);
+    if (t === "rec" || t === "lim" || t === "bud") t = "fix";
+    if (!TABS.includes(t)) t = "sum";
+    const ch = (t === "fix" || t === "abo") && S.rmode !== t; S.tab = t; if (t === "fix" || t === "abo") S.rmode = t;
+    $("tab-sum").hidden = t !== "sum"; $("tab-tx").hidden = t !== "tx"; $("tab-rec").hidden = !(t === "fix" || t === "abo"); $("tab-loan").hidden = t !== "loan";
+    if (ch) { if (!F.redit) recModeForm(); renderRec(); }
     document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
-    try { localStorage.setItem("finanzen-tab", t === "bud" ? S.bsub : t); } catch (e) {}
+    try { localStorage.setItem("finanzen-tab", t); } catch (e) {}
     window.scrollTo(0, 0);
     if (t === "sum" && !S.sbMoved) posBars();
   }
@@ -1306,7 +1304,6 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "cper") { S.cper = id; renderSum(); }
     else if (a === "sper") { S.sper = id; renderSum(); }
     else if (a === "sunit") { S.sunit = id; renderSum(); }
-    else if (a === "bsub") { S.bsub = id; showTab("bud"); }
     else if (a === "gosub") { showTab(id); }
     else if (a === "bsave") {
       const cat = $("bf-cat").value, amount = num($("bf-amount").value);
@@ -1437,7 +1434,7 @@ td button { padding: 4px 8px; font-size: 13px }
   const HAPACTS = { rsave: 1, tsave: 1, lsave: 1, bsave: 1, bankgo: 1 };
   document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("button[data-act]"); if (b && HAPACTS[b.dataset.act]) haptic(); }, true);
   /* Wischen zwischen den Reitern (wie im Trainingslog) */
-  const TABS = ["sum", "bud", "tx"]; let SW = null;
+  let SW = null;
   const swBlocked = el => {
     if (document.querySelector(".overlay")) return true;
     for (let n = el; n && n !== document.body; n = n.parentElement) {
@@ -1450,7 +1447,7 @@ td button { padding: 4px 8px; font-size: 13px }
     SW = null; if (!S.ready || ev.touches.length !== 1) return;
     const tc = ev.touches[0], wv = window.innerWidth; if (tc.clientX < 18 || tc.clientX > wv - 18) return;
     if (swBlocked(ev.target)) return;
-    SW = { x: tc.clientX, y: tc.clientY, t: Date.now(), dir: 0, dx: 0, el: $("tab-" + S.tab) };
+    SW = { x: tc.clientX, y: tc.clientY, t: Date.now(), dir: 0, dx: 0, el: tabEl(S.tab) };
   }, { passive: true });
   document.addEventListener("touchmove", ev => {
     if (!SW || ev.touches.length !== 1) return;
@@ -1471,7 +1468,7 @@ td button { padding: 4px 8px; font-size: 13px }
     el.style.transition = "transform .16s ease-in, opacity .16s"; el.style.transform = "translateX(" + sg * w + "px)"; el.style.opacity = "0";
     setTimeout(() => {
       reset(el); showTab(TABS[to]);
-      const ne = $("tab-" + TABS[to]); ne.style.transition = "none"; ne.style.transform = "translateX(" + (-sg * w * 0.35) + "px)"; ne.style.opacity = "0";
+      const ne = tabEl(TABS[to]); ne.style.transition = "none"; ne.style.transform = "translateX(" + (-sg * w * 0.35) + "px)"; ne.style.opacity = "0";
       void ne.offsetWidth; ne.style.transition = "transform .2s ease-out, opacity .2s"; ne.style.transform = ""; ne.style.opacity = "";
       setTimeout(() => reset(ne), 230);
     }, 160);
