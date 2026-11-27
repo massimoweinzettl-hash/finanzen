@@ -387,7 +387,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 37;
+  var APP_VERSION = 38;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -758,23 +758,25 @@ td button { padding: 4px 8px; font-size: 13px }
     // Saldo pro Monat: Rückblick (echte Buchungen) und Zukunft (geplant), waagerecht wischbar
     const kc = mi(cm), k0 = Math.max(kc - 36, firstMonth()), k1 = kc + 36, sm = [];
     for (let k = k0; k <= k1; k++) sm.push(im(k));
-    const st = sm.map(totals), pmax = Math.max(0, ...st.map(t => t.s)), nmax = Math.max(0, ...st.map(t => -t.s)), span = Math.max(1, pmax + nmax), zero = pmax / span * 100;
+    /* v38 (Wunsch des Besitzers): wieder EIN Balken je Monat = Bilanz (grün nach oben, rot nach unten). Skala am 90-%-Wert, Ausreißer (z. B. Schlussrate) laufen an den Rand, Zahl steht trotzdem dran. */
+    const st = sm.map(totals), av = st.map(t => Math.abs(t.s)).filter(v => v > 0).sort((x, y) => x - y), cap = Math.max(1, (av[Math.floor(av.length * 0.9)] || 0) * 1.15),
+      pmax = Math.min(cap, Math.max(0, ...st.map(t => t.s))), nmax = Math.min(cap, Math.max(0, ...st.map(t => -t.s))), span = Math.max(1, pmax + nmax), zero = 6 + pmax / span * 80;
     let pb = 0, fw = 0; sm.forEach((m, j) => { const k = mi(m); if (k < kc && k >= kc - 12) pb += st[j].s; if (k > kc && k <= kc + 12) fw += st[j].s; });
     const sg = v => '<b class="' + (v < 0 ? "neg" : "pos") + '">' + (v > 0 ? "+" : "") + eur(v) + "</b>";
     /* Planmäßiges Kreditende (letzte Rate ohne Sonderzahlungen; bei Ablösung der Ablösemonat) als Markierung im Saldo */
     const lend = {}; loans().forEach(l => { const sc = sched(l); if (sc.never) return; const e = l.paidoff ? l.paidoff : sc.end != null ? im(sc.end) : null; if (e) (lend[e] = lend[e] || []).push(l.name); });
     S.sb = { sm, st, lend };
     /* v29 (Wunsch des Besitzers): je Monat zwei Balken, Einnahmen grün und Ausgaben rot (ohne Sparen), Betrag darüber. Saldo steht oben. */
-    const vs = st.flatMap(t => [t.i, t.o]).filter(v => v > 0).sort((x, y) => x - y), vmax = Math.max(1, (vs[Math.floor(vs.length * 0.9)] || 0) * 1.15), /* Ausreißer (z. B. Schlussrate) laufen oben an, Zahl steht trotzdem dran */ kfmt = v => v >= 10000 ? (Math.round(v / 100) / 10).toString().replace(".", ",") + "k" : String(Math.round(v));
+    const kfmt = v => v >= 10000 ? (Math.round(v / 100) / 10).toString().replace(".", ",") + "k" : String(Math.round(v));
     if (!S.sbSel || sm.indexOf(S.sbSel) < 0) S.sbSel = cm;
-    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div>' + kontoChart() + '</div><div class="block"><div class="grphead" style="align-items:center"><h2>Saldo pro Monat</h2><button class="ghost" data-act="stoday">Heute</button></div><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars io" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">';
+    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div>' + kontoChart() + '</div><div class="block"><div class="grphead" style="align-items:center"><h2>Saldo pro Monat</h2><button class="ghost" data-act="stoday">Heute</button></div><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">';
     h += sm.map((m, j) => {
-      const t = st[j], none = !t.i && !t.o, hi = Math.min(1, t.i / vmax) * 86, ho = Math.min(1, t.o / vmax) * 86;
+      const t = st[j], none = !t.i && !t.o, neg = t.s < 0, ht = none ? 0 : Math.max(1.2, Math.min(neg ? nmax : pmax, Math.abs(t.s)) / span * 80);
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
-        (none ? "" : '<i class="bi" style="height:' + hi.toFixed(2) + '%"></i><i class="bo" style="height:' + ho.toFixed(2) + '%"></i><span class="sbv vi" style="bottom:calc(' + hi.toFixed(2) + '% + 2px)">' + kfmt(t.i) + '</span><span class="sbv vo" style="bottom:calc(' + ho.toFixed(2) + '% + 2px)">' + kfmt(t.o) + "</span>") + "</button>";
-    }).join("") + '<span class="snow" style="left:' + ((kc - k0 + 1) * (SBW + 4) - 2) + 'px"></span></div>' +
+        (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + kfmt(Math.abs(t.s)) + "</span>") + "</button>";
+    }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * (SBW + 4) - 2) + 'px"></span></div>' +
       '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + (lend[m] ? '<em class="lend" title="Kredit endet: ' + esc(lend[m].join(", ")) + '">Ende</em>' : "") + "</span>").join("") + "</div></div></div></div>" +
-      '<div class="legend"><span><i style="background:var(--good)"></i>Einnahmen</span><span><i style="background:var(--bad)"></i>Ausgaben</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
+      '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
       '<p class="small muted">Kommende Monate: nur feste Posten und Kreditraten.</p></div>';
     // Kategorien
