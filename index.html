@@ -220,6 +220,11 @@ td button { padding: 4px 8px; font-size: 13px }
         <label>Erste Rate (optional)<input type="month" id="lf-first"></label>
       </div>
       <label>Kreditbetrag am Anfang (optional)<input id="lf-orig" inputmode="decimal" autocomplete="off"></label>
+      <div class="g2">
+        <label>Schlussrate (optional)<input id="lf-balloon" inputmode="decimal" autocomplete="off"></label>
+        <label>Monat der Schlussrate<input type="month" id="lf-end"></label>
+      </div>
+      <span class="small muted">Nur bei Finanzierung mit Schlussrate (z. B. Autobank): Dann rechnet die App die Restschuld selbst aus, das Feld Restschuld kann leer bleiben.</span>
       <label>Notiz (optional)<input id="lf-note" autocomplete="off" placeholder="z. B. Sondertilgung erlaubt"></label>
       <div class="row" style="align-items:center"><button class="primary" data-act="lsave">Speichern</button><button data-act="lcancel" id="lf-cancel" hidden>Abbrechen</button><span class="small muted" id="lf-msg">Restschuld und Zinssatz stehen auf dem Kontoauszug oder im Online-Banking. Die Rate wird automatisch jeden Monat als Ausgabe unter „Kredite &amp; Raten“ gezählt, bis der Kredit abbezahlt ist.</span></div>
     </div>
@@ -268,7 +273,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 5;
+  var APP_VERSION = 6;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -465,7 +470,7 @@ td button { padding: 4px 8px; font-size: 13px }
   });
 
   /* Formular-Entwürfe: halb ausgefüllte Felder überstehen ein Neuladen der Seite */
-  const DRAFT_IDS = ["rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note"];
+  const DRAFT_IDS = ["rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"];
   function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
   function restoreForms() { try { const o = JSON.parse(localStorage.getItem("finanzen-draft") || "{}"); Object.keys(o).forEach(id => { const el = $(id); if (el && DRAFT_IDS.includes(id)) el.value = o[id]; }); } catch (e) {} }
   document.addEventListener("input", ev => { if (DRAFT_IDS.includes(ev.target.id)) saveForms(); });
@@ -490,7 +495,18 @@ td button { padding: 4px 8px; font-size: 13px }
   const yearSum = (y, type) => { let t = 0; for (let j = 1; j <= 12; j++) monthItems(y + "-" + pad(j)).forEach(x => { if (x.src !== "tx" && x.type === type) t += x.amount; }); return t; };
   const loans = () => Object.keys(S.loans).map(id => Object.assign({ id }, S.loans[id]));
   /* Tilgungsplan ab dem Monat der Restschuld: Zinsen monatlich = Restschuld × Zins / 12 */
+  /* Finanzierung mit Schlussrate: feste Raten bis zum Vormonat, im Monat `end` die Schlussrate. Restschuld = Barwert
+     der offenen Zahlungen mit dem Effektivzins (monatlich (1+eff)^(1/12)−1); Zinsanteil je Rate = Restschuld × Monatszins. */
+  function schedBalloon(l) {
+    const i = Math.pow(1 + (l.interest || 0) / 100, 1 / 12) - 1, a = mi(l.asOf), e = mi(l.end), flows = [];
+    for (let k = a; k <= e; k++) flows.push(k === e ? l.balloon : l.rate);
+    const pv = from => flows.slice(from).reduce((s, f, j) => s + f / Math.pow(1 + i, j + 1), 0);
+    const pays = []; let int = 0;
+    flows.forEach((f, j) => { const z = pv(j) * i, bal = pv(j + 1); int += z; pays.push({ k: a + j, pay: f, z, bal }); });
+    return { pays, int, end: e, balloon: true, start: pv(0) };
+  }
   function sched(l, extra) {
+    if (l.balloon > 0 && l.end) return schedBalloon(l);
     const pays = [], i = (l.interest || 0) / 1200, rate = l.rate + (extra || 0);
     let b = l.balance, k = mi(l.asOf), int = 0;
     if (b > 0 && rate <= b * i + 1e-9) return { never: true, pays: [], int: 0 };
@@ -502,7 +518,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (k < a) return l.first && k >= mi(l.first) ? l.rate : 0;
     const p = sc.pays[k - a]; return p ? p.pay : (sc.never ? l.rate : 0);
   }
-  function balAt(l, k, sc) { const a = mi(l.asOf); if (k <= a || sc.never) return l.balance; const p = sc.pays[k - a - 1]; return p ? p.bal : 0; }
+  function balAt(l, k, sc) { const a = mi(l.asOf); if (sc.balloon && k <= a) return sc.start; if (k <= a || sc.never) return l.balance; const p = sc.pays[k - a - 1]; return p ? p.bal : 0; }
   /* Monate mit eingespieltem Kontoauszug: dort zählen die echten Buchungen, feste Posten und Kreditraten nicht zusätzlich
      (Wunsch des Besitzers: nichts doppelt). Für Monate ohne Kontoauszug planen die festen Posten. */
   const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
@@ -724,7 +740,8 @@ td button { padding: 4px 8px; font-size: 13px }
       h += '<div class="stats"><div><b>' + eur(bal) + '</b><span>Restschuld jetzt</span></div><div><b>' + eur(l.rate) + '</b><span>Rate pro Monat</span></div><div><b>' + String(l.interest || 0).replace(".", ",") + ' %</b><span>Zinssatz p. a.</span></div><div><b>' + (sc.end != null ? mshort(im(sc.end)) + " " + im(sc.end).slice(0, 4) : "–") + '</b><span>letzte Rate</span></div></div>';
       if (l.original > 0) { const pct = Math.max(0, Math.min(100, (1 - bal / l.original) * 100)); h += '<div class="prog" role="img" aria-label="' + Math.round(pct) + ' Prozent getilgt"><i style="width:' + pct.toFixed(1) + '%"></i></div><p class="small muted">' + Math.round(pct) + " % von " + eur0(l.original) + " getilgt</p>"; }
       h += "<p>Noch <b>" + rest.length + " Raten</b>, davon <b>" + eur(ri) + "</b> Zinsen.</p>";
-      if (S.extra > 0) {
+      if (sc.balloon) h += '<p class="small muted">Davon Schlussrate ' + eur(l.balloon) + " im " + mname(l.end) + ". Restschuld aus den offenen Zahlungen und dem Effektivzins berechnet.</p>";
+      if (S.extra > 0 && !sc.balloon) {
         const sx = sched(l, S.extra), rx = sx.pays.filter(p => p.k >= k), ix = rx.reduce((a, p) => a + p.z, 0);
         h += '<span class="hint up" style="align-self:flex-start;font-size:13px;font-weight:600;padding:4px 9px;border-radius:6px;background:var(--good-soft);color:var(--good)">Mit ' + eur(S.extra) + " extra: fertig " + (sx.end != null ? mname(im(sx.end)) : "–") + ", " + (rest.length - rx.length) + " Monate früher, " + eur(ri - ix) + " Zinsen gespart</span>";
       }
@@ -737,7 +754,7 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   const loanBtns = l => '<div class="row"><button data-act="ledit" data-id="' + esc(l.id) + '">Ändern</button><button class="danger" data-act="ldel" data-id="' + esc(l.id) + '">Löschen</button></div>';
   function resetLoanForm() {
-    F.ledit = null; ["lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-orig", "lf-first", "lf-note"].forEach(id => { $(id).value = ""; });
+    F.ledit = null; ["lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"].forEach(id => { $(id).value = ""; });
     $("lf-asof").value = curMonth(); $("lf-title").textContent = "Laufenden Kredit eintragen"; $("lf-cancel").hidden = true;
   }
 
@@ -844,20 +861,24 @@ td button { padding: 4px 8px; font-size: 13px }
     }
     else if (a === "tdel") { if (arm(b, "Sicher?")) { put(id, null); if (F.tedit === id) resetTxForm(); renderAll(); } }
     else if (a === "lsave") {
-      const name = $("lf-name").value.trim(), balance = num($("lf-balance").value), rate = num($("lf-rate").value), interest = num($("lf-int").value) || 0, asOf = $("lf-asof").value || curMonth();
+      const name = $("lf-name").value.trim(), rate = num($("lf-rate").value), interest = num($("lf-int").value) || 0, asOf = $("lf-asof").value || curMonth();
+      const balloon = num($("lf-balloon").value) || null, end = $("lf-end").value || null;
+      if (balloon && (!end || mi(end) < mi(asOf))) { $("lf-msg").textContent = "Bei einer Schlussrate bitte auch den Monat der Schlussrate eintragen (nicht vor dem Stand)."; return; }
+      let balance = num($("lf-balance").value);
+      if (balloon && rate > 0) balance = Math.round(schedBalloon({ rate, interest, asOf, end, balloon }).start * 100) / 100;
       if (!name || !(balance > 0) || !(rate > 0)) { $("lf-msg").textContent = "Bitte Bezeichnung, Restschuld und Monatsrate eintragen."; return; }
       if (interest < 0 || interest > 30) { $("lf-msg").textContent = "Der Zinssatz sieht ungewöhnlich aus. Bitte als Prozent pro Jahr eintragen, z. B. 5,9."; return; }
       const first = $("lf-first").value || null;
       if (first && mi(first) > mi(asOf)) { $("lf-msg").textContent = "Die erste Rate liegt nach dem Stand der Restschuld."; return; }
       const idx = F.ledit || rid("l"), old = S.loans[idx];
-      put(idx, { kind: "loan", name, lender: $("lf-lender").value.trim(), balance, rate, interest, asOf, original: num($("lf-orig").value) || null, first, note: $("lf-note").value.trim(), example: old ? !!old.example : false });
+      put(idx, { kind: "loan", name, lender: $("lf-lender").value.trim(), balance, rate, interest, asOf, original: num($("lf-orig").value) || null, first, balloon, end: balloon ? end : null, note: $("lf-note").value.trim(), example: old ? !!old.example : false });
       $("lf-msg").textContent = "„" + name + "“ gespeichert."; resetLoanForm(); renderAll();
     }
     else if (a === "lcancel") { resetLoanForm(); $("lf-msg").textContent = ""; }
     else if (a === "ledit") {
       const l = S.loans[id]; if (!l) return; F.ledit = id; const dc = v => v == null ? "" : String(v).replace(".", ",");
       $("lf-name").value = l.name; $("lf-lender").value = l.lender || ""; $("lf-balance").value = dc(l.balance); $("lf-rate").value = dc(l.rate); $("lf-int").value = dc(l.interest);
-      $("lf-asof").value = l.asOf; $("lf-orig").value = dc(l.original); $("lf-first").value = l.first || ""; $("lf-note").value = l.note || "";
+      $("lf-asof").value = l.asOf; $("lf-orig").value = dc(l.original); $("lf-first").value = l.first || ""; $("lf-note").value = l.note || ""; $("lf-balloon").value = dc(l.balloon); $("lf-end").value = l.end || "";
       $("lf-title").textContent = "„" + l.name + "“ ändern"; $("lf-cancel").hidden = false; $("lf-msg").textContent = "Tipp: Für einen neuen Stand einfach Restschuld und Monat vom aktuellen Kontoauszug eintragen."; $("lf-title").scrollIntoView({ block: "center" }); $("lf-balance").focus();
     }
     else if (a === "ldel") { if (arm(b, "Sicher?")) { put(id, null); if (F.ledit === id) resetLoanForm(); renderAll(); } }
