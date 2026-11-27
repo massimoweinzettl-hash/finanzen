@@ -221,7 +221,8 @@ td button { padding: 4px 8px; font-size: 13px }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12) }
 .pie { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: center }
 .pie svg { width: 190px; height: 190px; display: block }
-.pie svg circle.s { cursor: pointer }
+.pie svg circle.s { cursor: pointer; transition: opacity .2s } .pie svg circle.s.dim { opacity: .3 } .pie svg { overflow: visible }
+.crow.on { background: var(--sunken) } .cpick { padding: 4px 0 0 10px; display: flex; flex-direction: column; gap: 6px } .cpick .grphead b { font: 600 16px var(--display) }
 .pie .ct { font: 600 17px var(--display); fill: var(--ink) } .pie .cl { font: 12px var(--body); fill: var(--muted) }
 .clist { display: flex; flex-direction: column; min-width: 0 }
 .crow { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 9px 2px; font-weight: 400; width: 100% }
@@ -387,7 +388,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 41;
+  var APP_VERSION = 42;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -740,16 +741,27 @@ td button { padding: 4px 8px; font-size: 13px }
     ms.forEach(m => monthItems(m).forEach(x => { if (ty === "save" ? !isSave(x) : x.type !== ty || (!withSave && isSave(x))) return; by[x.cat] = (by[x.cat] || 0) + x.amount; n[x.cat] = (n[x.cat] || 0) + 1; tot += x.amount; }));
     return { rows: Object.keys(by).map(c => ({ c, v: by[c], n: n[c] })).sort((a, b) => b.v - a.v), tot };
   }
+  /* v42 (Wunsch des Besitzers): Segment antippen hebt es hervor (leicht herausgezogen, Rest blass), Mitte zeigt Kategorie,
+     darunter die Einträge. Nochmal antippen schließt. Auswahl in S.cpick. */
+  function pickHtml(rows, ty) {
+    const r = rows.find(x => x.c === S.cpick); if (!r) return "";
+    const its = []; perMonths().forEach(m => monthItems(m).forEach(i => { if (i.type === ty && i.cat === r.c && !(ty === "out" && isSave(i) && r.c !== "sparen")) its.push(Object.assign({ m }, i)); }));
+    its.sort((a, b) => b.amount - a.amount);
+    return '<div class="cpick" style="border-left:3px solid ' + ccol(r.c) + '"><div class="grphead"><h3>' + esc(catName(r.c)) + '</h3><b class="' + (ty === "in" ? "pos" : "neg") + '">' + eur(r.v) + '</b></div><div class="tablewrap"><table><tbody>' + its.slice(0, 12).map(i => itemRow(i, false)).join("") + "</tbody></table></div>" +
+      '<div class="row"><button class="ghost" data-act="copen" data-id="' + esc(r.c) + '">' + (its.length > 12 ? "Alle " + its.length + " Einträge ›" : "Details ›") + '</button><button class="ghost" data-act="cpick" data-id="">Schließen</button></div></div>';
+  }
   function donut(rows, tot, ty) {
-    const R = 74, W = 26, C = 2 * Math.PI * R, gap = rows.length > 1 ? 2 : 0;
+    const R = 70, W = 26, C = 2 * Math.PI * R, gap = rows.length > 1 ? 2 : 0, pk = rows.some(r => r.c === S.cpick) ? S.cpick : null;
     let off = 0, h = '<svg viewBox="0 0 190 190" role="img" aria-label="Kuchendiagramm ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + ' nach Kategorie"><g transform="rotate(-90 95 95)">';
     h += '<circle cx="95" cy="95" r="' + R + '" fill="none" stroke="var(--sunken)" stroke-width="' + W + '"/>';
     rows.forEach(r => {
       const len = r.v / tot * C, vis = Math.max(0.5, len - gap);
-      h += '<circle class="s" data-act="copen" data-id="' + esc(r.c) + '" tabindex="0" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + ccol(r.c) + '" stroke-width="' + W + '" stroke-dasharray="' + vis.toFixed(2) + " " + (C - vis).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(catName(r.c)) + ": " + eur(r.v) + " (" + pct(r.v, tot) + ")</title></circle>";
+      const sel = r.c === pk, an = (off + len / 2) / C * 2 * Math.PI, tr = sel ? ' transform="translate(' + (Math.cos(an) * 7).toFixed(2) + " " + (Math.sin(an) * 7).toFixed(2) + ')"' : "";
+      h += '<circle class="s' + (sel ? " on" : pk ? " dim" : "") + '"' + tr + ' data-act="cpick" data-id="' + esc(r.c) + '" tabindex="0" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + ccol(r.c) + '" stroke-width="' + (sel ? W + 6 : W) + '" stroke-dasharray="' + vis.toFixed(2) + " " + (C - vis).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(catName(r.c)) + ": " + eur(r.v) + " (" + pct(r.v, tot) + ")</title></circle>";
       off += len;
     });
-    h += '</g><text class="ct" x="95" y="96" text-anchor="middle">' + eur0(tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (ty === "in" ? "Einnahmen" : "Ausgaben") + "</text></svg>";
+    const pr = pk && rows.find(r => r.c === pk), nm = pr ? catName(pk) : "";
+    h += '</g><text class="ct" x="95" y="96" text-anchor="middle">' + eur0(pr ? pr.v : tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (pr ? esc(nm.length > 15 ? nm.slice(0, 13).trim() + "…" : nm) : ty === "in" ? "Einnahmen" : "Ausgaben") + "</text>" + (pr ? '<text class="cl" x="95" y="132" text-anchor="middle">' + pct(pr.v, tot) + "</text>" : "") + "</svg>";
     return h;
   }
 
@@ -794,7 +806,7 @@ td button { padding: 4px 8px; font-size: 13px }
       '<div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="cper" data-id="m" aria-pressed="' + (S.cper === "m") + '">Monat</button><button data-act="cper" data-id="y" aria-pressed="' + (S.cper === "y") + '">Jahr</button></div>' +
       '<div class="month"><button data-act="' + (S.cper === "y" ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + perLabel() + '</b><button data-act="' + (S.cper === "y" ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div></div>';
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
-    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" +
+    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" + pickHtml(rows, ty) +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
     h += "</div>" + sankeyBlock();
     if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
@@ -1344,6 +1356,7 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mset") { S.month = id; S.year = id.slice(0, 4); renderSum(); renderTx(); renderBud(); }
     else if (a === "yprev" || a === "ynext") { S.year = String(+S.year + (a === "yprev" ? -1 : 1)); S.month = S.year + S.month.slice(4); renderSum(); renderTx(); renderBud(); }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
+    else if (a === "cpick") { S.cpick = id && S.cpick !== id ? id : null; haptic(); renderSum(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
     else if (a === "dsave") depotSave();
@@ -1353,9 +1366,9 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "shm") { sheetMonth(+id, true); }
     else if (a === "cexp") { if (!S.sheet) return; S.sheet.open = S.sheet.open || {}; S.sheet.open[id] = !S.sheet.open[id]; const sc = $("sheet").scrollTop; refreshSheet(); $("sheet").scrollTop = sc; }
     else if (a === "incopen") { if (!S.sheet) return; S.sheet.inc = true; refreshSheet(); const el = $("inc-tot"); if (el) { el.focus(); try { el.setSelectionRange(0, el.value.length); } catch (e) {} } }
-    else if (a === "cty") { S.cty = id; renderSum(); }
+    else if (a === "cty") { S.cty = id; S.cpick = null; renderSum(); }
     else if (a === "cunit") { S.cunit = id; renderSum(); }
-    else if (a === "cper") { S.cper = id; renderSum(); }
+    else if (a === "cper") { S.cper = id; S.cpick = null; renderSum(); }
     else if (a === "sper") { S.sper = id; renderSum(); }
     else if (a === "sunit") { S.sunit = id; renderSum(); }
     else if (a === "gosub") { showTab(id); }
