@@ -52,6 +52,7 @@ button:disabled { opacity: .4; cursor: default }
 section.tab { touch-action: pan-y }
 .sscroll { touch-action: pan-x pan-y }
 .tabs button { position: relative }
+.hb { position: relative }
 .hapsw { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; appearance: none; -webkit-appearance: none; cursor: pointer }
 #rotnote { display: none }
 @media (orientation: landscape) and (max-height: 520px) { #rotnote { display: flex; position: fixed; inset: 0; z-index: 200; background: var(--bg); color: var(--ink); align-items: center; justify-content: center; flex-direction: column; gap: 10px; font-weight: 650; text-align: center; padding: 20px } #rotnote svg { opacity: .8 } }
@@ -388,7 +389,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 18;
+  var APP_VERSION = 19;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -745,7 +746,7 @@ td button { padding: 4px 8px; font-size: 13px }
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, ht = Math.max(none ? 0 : 1.2, Math.abs(t.s) / span * 100), neg = t.s < 0;
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
-        (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
+        HSW + (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
     }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * 34 - 2) + 'px"></span></div>' +
       '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
@@ -851,7 +852,7 @@ td button { padding: 4px 8px; font-size: 13px }
     const sh = S.sheet; if (!sh) return "";
     if (sh.k === "m") {
       const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
-      let h = '<div class="shead"><div class="month" style="gap:6px"><button data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹</button><h2>' + mname(m) + '</h2><button data-act="shm" data-id="1" aria-label="Nächster Monat">›</button></div><button data-act="sheetclose">Schließen</button></div>' +
+      let h = '<div class="shead"><div class="month" style="gap:6px"><button class="hb" data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹' + HSW + '</button><h2>' + mname(m) + '</h2><button class="hb" data-act="shm" data-id="1" aria-label="Nächster Monat">›' + HSW + '</button></div><button data-act="sheetclose">Schließen</button></div>' +
         '<div class="stats">' + (sh.inc ? '<div class="istat ed"><input id="inc-tot" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-m="' + m + '" value="' + (Math.round(t.i * 100) / 100).toString().replace(".", ",") + '"><span>Netto-Einnahmen · leer = automatisch</span></div>'
           : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
@@ -1300,6 +1301,8 @@ td button { padding: 4px 8px; font-size: 13px }
   document.addEventListener("mouseup", ev => { if (numSel && ev.target === numSel) { ev.preventDefault(); numSel = null; } });
   /* Haptik: Android über vibrate, iPhone über einen versteckten Schalter (System-Klick, ab iOS 18). In den Reitern liegt der Schalter direkt im Knopf. */
   let HAPT = null;
+  /* iPhone/Safari: spürbar ist nur ein echtes Antippen eines Schalters, daher liegt in wichtigen Knöpfen ein unsichtbarer Schalter (wie in den Reitern). */
+  const HSW = '<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true">';
   function haptic(light) {
     try { if (navigator.vibrate && navigator.vibrate(light ? 8 : 15)) return; } catch (e) {}
     try {
