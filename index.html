@@ -166,6 +166,9 @@ td button { padding: 4px 8px; font-size: 13px }
 .sb.sel { background: var(--accent-soft) }
 .sbv { position: absolute; left: -6px; right: -6px; text-align: center; font-size: 9.5px; line-height: 12px; color: var(--muted); white-space: nowrap; letter-spacing: -.02em; pointer-events: none }
 .sb.sel .sbv { color: var(--ink); font-weight: 600 }
+.cexp { background: var(--sunken); border-radius: 8px; padding: 2px 10px; margin: 2px 0 8px }
+.cexp td { border-bottom-color: var(--line) } .cexp tr:last-child td { border-bottom: 0 }
+.crow .chev { color: var(--muted); font-size: 11px; margin-left: 4px }
 .incrow { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line) }
 .incrow:last-child { border-bottom: 0 }
 .incrow .ih { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
@@ -377,7 +380,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 12;
+  var APP_VERSION = 13;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -839,7 +842,11 @@ td button { padding: 4px 8px; font-size: 13px }
       if (!(bankMonths()[m] && mi(m) < mi(curMonth()))) h += incEdit(m);
       ["out", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
-        h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '" data-ty="' + ty + '" data-m="' + m + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + "</span></button>").join("") + "</div></div>";
+        h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
+          let x = '<button class="crow" data-act="cexp" data-id="' + esc(key) + '" aria-expanded="' + op + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + ' <span class="chev">' + (op ? "▴" : "▾") + "</span></span></button>";
+          if (op) { const its = items.filter(i => i.type === ty && i.cat === r.c).sort((a, b) => (b.date || "") < (a.date || "") ? -1 : (b.date || "") > (a.date || "") ? 1 : b.amount - a.amount);
+            x += '<div class="cexp tablewrap"><table><tbody>' + its.map(i => itemRow(i, false)).join("") + "</tbody></table></div>"; }
+          return x; }).join("") + "</div></div>";
       });
       if (!items.length) h += '<p class="empty">Keine Einträge in diesem Monat.</p>';
       else { items.sort((a, b) => a.type !== b.type ? (a.type === "in" ? -1 : 1) : ((b.date || "") < (a.date || "") ? -1 : (b.date || "") > (a.date || "") ? 1 : b.amount - a.amount));
@@ -1149,6 +1156,7 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
+    else if (a === "cexp") { if (!S.sheet) return; S.sheet.open = S.sheet.open || {}; S.sheet.open[id] = !S.sheet.open[id]; const sc = $("sheet").scrollTop; refreshSheet(); $("sheet").scrollTop = sc; }
     else if (a === "incset" || a === "increset") {
       const r = S.rec[id], m = b.dataset.m; if (!r) return;
       const d = JSON.parse(JSON.stringify(r)), v = a === "incset" ? num(($("inc-" + id) || {}).value) : null;

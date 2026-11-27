@@ -17,3 +17,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v10: Geldfluss als Sankey-Diagramm in der Übersicht, umschaltbar Monat/Jahr und €/%, mit Sparquote und Sparrate pro Monat.
 - v11: App-Verhalten wie im Trainingslog übernommen (nicht markierbar, kein Zoomen, Wischen zwischen Reitern, Haptik, Zahlenfelder markieren, nur Hochformat). Saldo: Wischen wählt Monat (Anzeige mit Saldo, Einnahmen, Ausgaben), Werte an den Balken.
 - v12: Einnahmen im Monatsblatt anpassen (Wunsch des Besitzers: Weihnachtsgeld schwankt, TVöD-Erhöhungen unregelmäßig): Betrag nur für diesen Monat (`over`), ab diesem Monat (`changes`), einmalige Einnahme (fester Posten mit start = end).
+- v13: Kategorien im Monatsblatt klappen im selben Fenster auf statt in ein neues Blatt zu springen (Wunsch des Besitzers).
