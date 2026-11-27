@@ -389,7 +389,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 20;
+  var APP_VERSION = 21;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -749,7 +749,7 @@ td button { padding: 4px 8px; font-size: 13px }
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, ht = Math.max(none ? 0 : 1.2, Math.abs(t.s) / span * 100), neg = t.s < 0;
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
-        HSW + (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
+        (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
     }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * 34 - 2) + 'px"></span></div>' +
       '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
@@ -770,9 +770,6 @@ td button { padding: 4px 8px; font-size: 13px }
     el.innerHTML = h;
     if (keep != null) $("sscroll").scrollLeft = keep; else posBars();
     let raf = 0;
-    /* Haptik pro Monat: iPhone/Safari löst den Schalter-Klick nur während einer Berührung aus, daher die Auswahl auch direkt im touchmove prüfen
-       (Schwung nach dem Loslassen bleibt dort ohne Haptik). Android: vibrate. */
-    $("sscroll").addEventListener("touchmove", () => sbPick(), { passive: true });
     $("sscroll").addEventListener("scroll", () => { if (!S.sbAuto) S.sbMoved = true; S.sbAuto = false; if (!raf) raf = requestAnimationFrame(() => { raf = 0; sbPick(); }); }, { passive: true });
   }
   /* Ausgewählter Monat = Balken unter der Mitte; Anzeige oben zeigt Saldo, Einnahmen und Ausgaben dieses Monats */
@@ -786,7 +783,7 @@ td button { padding: 4px 8px; font-size: 13px }
     let best = null, bd = 1e9; sc.querySelectorAll(".sb").forEach(b => { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } });
     if (!best || best.dataset.id === S.sbSel) return;
     S.sbSel = best.dataset.id; sc.querySelectorAll(".sb.sel").forEach(b => b.classList.remove("sel")); best.classList.add("sel");
-    $("sread").innerHTML = sreadHtml(S.sbSel); haptic(true);
+    $("sread").innerHTML = sreadHtml(S.sbSel);
   }
   /* Laufender Monat etwa bei zwei Dritteln, damit Rückblick und Zukunft zu sehen sind */
   function posBars() {

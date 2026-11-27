@@ -2,7 +2,7 @@
 
 Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei jeder Änderung mitpflegen.** Nur der aktuelle Stand; Geschichte in `VERLAUF.md`. Das Repo ist öffentlich – nichts Persönliches eintragen, keine echten Beträge.
 
-**Stand:** v20 (27.11.2026)
+**Stand:** v21 (27.11.2026)
 
 ## Nach jeder Änderung
 - `APP_VERSION` in `index.html` +1 (die installierte App zeigt dann „Update bereit“).
@@ -30,7 +30,7 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 ## App-Verhalten (seit v11, 1:1 wie Trainingslog, Wunsch des Besitzers)
 - Oberfläche nicht markierbar, kein Kopier-Menü (`user-select`/`touch-callout`), Eingaben bleiben markierbar; kein Tipp-Blitz; kein Zoomen (Viewport `#vpm` + `gesturestart` abfangen, `touch-action`).
 - Wischen zwischen den Reitern (`TABS`, `swBlocked`: nicht in Feldern, Overlays, seitlich scrollenden Bereichen); `.tabclip` schneidet seitlich ab – kein `overflow` an Vorfahren der Reiterleiste.
-- Zahlenfelder (`inputmode`) markieren beim Antippen den Wert. Haptik auf dem iPhone nur bei echtem Antippen eines Schalters (`HSW` in Reitern, Saldo-Balken, ‹ › im Monatsblatt); beim Wischen/Scrollen technisch nicht möglich (Besitzer getestet: nicht spürbar). Haptik (`haptic()`: vibrate bzw. versteckter Schalter `.hapsw` in den Reitern) bei Reiterwechsel, Speichern, Monatswahl im Saldo.
+- Zahlenfelder (`inputmode`) markieren beim Antippen den Wert. Haptik auf dem iPhone nur bei echtem Antippen eines Schalters (`HSW` in Reitern und ‹ › im Monatsblatt). Im Saldo-Diagramm KEINE Haptik und keine Schalter in den Balken (v21, Besitzer: Wischen wurde dadurch schlecht). Haptik (`haptic()`: vibrate bzw. versteckter Schalter `.hapsw` in den Reitern) bei Reiterwechsel, Speichern, Monatswahl im Saldo.
 - Nur Hochformat: Hinweis `#rotnote` im Querformat.
 - Neue App-Details aus dem Trainingslog immer mit übernehmen.
 
