@@ -36,3 +36,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v30: Kontostand-Block mit Linie „Girokonto am Monatsende“ (12 Monate zurück, 24 voraus). Rückblick = eingetragener Kontostand minus Monatssalden (`kontoBal`), Zukunft = `projBal`, gestrichelt. Kennzahlen: vor 12 Monaten, Ende laufender Monat, in 12 und 24 Monaten.
 - v31: Selbst eingetragenes Netto im laufenden Monat mit Kontoauszug: schon gebuchte Einnahmen bleiben, der Rest zählt als „kommt noch“ (fehlte sonst im Kontostand am Monatsende). Kontostand-Kasten zeigt den Rechenweg (`kontoWeg`): heute + kommt noch rein − geht noch ab (+ Folgemonate).
 - v32: Kontostand-Linie mit Beträgen alle 3 Monate (ab 1.000 als „k“).
+- v33: Kontostand-Linie hängt an der Saldo-Leiste (`#kscroll` und `#sscroll` scrollen gemeinsam, gleiche Spalten `SBW`), jeder Monat beschriftet mit Betrag, gewählter Monat hervorgehoben; Höhe passt sich den sichtbaren Monaten an (`kontoSvg(a, b)`).
