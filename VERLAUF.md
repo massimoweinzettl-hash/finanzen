@@ -19,3 +19,5 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v12: Einnahmen im Monatsblatt anpassen (Wunsch des Besitzers: Weihnachtsgeld schwankt, TVöD-Erhöhungen unregelmäßig): Betrag nur für diesen Monat (`over`), ab diesem Monat (`changes`), einmalige Einnahme (fester Posten mit start = end).
 - v13: Kategorien im Monatsblatt klappen im selben Fenster auf statt in ein neues Blatt zu springen (Wunsch des Besitzers).
 - v14: Haptik bei jedem Monatswechsel im Saldo-Diagramm, auch direkt während der Berührung (iPhone-Schalter-Umweg wirkt nur, solange der Finger aufliegt).
+- v15: „Einnahmen anpassen“ verschlankt (Besitzer: zu groß): Einnahmen-Zahl im Monatsblatt antippen, Netto-Gehalt eintragen, ab jetzt / nur dieser Monat; Einmalzahlung über kleinen Link.
+- v16: Im Monatsblatt links/rechts wischen (oder ‹ ›) wechselt den Monat, mit Haptik.

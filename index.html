@@ -141,6 +141,8 @@ td button { padding: 4px 8px; font-size: 13px }
 .top .tl { display: flex; align-items: center; gap: 10px }
 .ver { font-size: 11px; color: var(--muted) }
 .overlay { position: fixed; inset: 0; z-index: 20; background: rgba(10, 14, 20, .45); display: flex; align-items: flex-end; justify-content: center }
+.sheet { touch-action: pan-y }
+.sheet .shead h2 { font-size: 18px; white-space: nowrap } .sheet .shead .month button { padding: 6px 10px }
 .sheet { background: var(--surface); color: var(--ink); width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px }
 .sheet.mid { align-self: center; border-radius: 16px; margin: 16px; text-align: center }
 .sheet .sec { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line) }
@@ -169,6 +171,12 @@ td button { padding: 4px 8px; font-size: 13px }
 .cexp { background: var(--sunken); border-radius: 8px; padding: 2px 10px; margin: 2px 0 8px }
 .cexp td { border-bottom-color: var(--line) } .cexp tr:last-child td { border-bottom: 0 }
 .crow .chev { color: var(--muted); font-size: 11px; margin-left: 4px }
+.istat { display: flex; flex-direction: column; align-items: flex-start; text-align: left; border: 0; background: var(--sunken); border-radius: 8px; padding: 4px 8px; margin: -4px -8px; font-weight: 400; min-width: 0 }
+.istat b { font: 600 20px var(--display); white-space: nowrap } .istat span { font-size: 12px; color: var(--muted) }
+.istat[aria-expanded="true"] { outline: 2px solid var(--accent) }
+.incbox { display: flex; flex-direction: column; gap: 8px; background: var(--sunken); border-radius: 10px; padding: 10px }
+.incbox input { background: var(--surface) } .incbox .seg { background: var(--surface) } .incbox .seg button[aria-pressed="true"] { background: var(--accent-soft) }
+.incone { display: flex; align-items: center; gap: 8px } .incone span { flex: 1; min-width: 0 } .incone button { padding: 4px 8px }
 .incrow { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line) }
 .incrow:last-child { border-bottom: 0 }
 .incrow .ih { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
@@ -380,7 +388,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 14;
+  var APP_VERSION = 16;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -837,12 +845,12 @@ td button { padding: 4px 8px; font-size: 13px }
   function sheetHtml() {
     const sh = S.sheet; if (!sh) return "";
     if (sh.k === "m") {
-      const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
-      let h = '<div class="shead"><h2>' + mname(m) + '</h2><button data-act="sheetclose">Schließen</button></div>' +
-        '<div class="stats"><div><b class="pos">' + eur(t.i) + '</b><span>Einnahmen</span></div><div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
+      const m = sh.m, editable = !(bankMonths()[sh.m] && mi(sh.m) < mi(curMonth())), t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
+      let h = '<div class="shead"><div class="month" style="gap:6px"><button data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹</button><h2>' + mname(m) + '</h2><button data-act="shm" data-id="1" aria-label="Nächster Monat">›</button></div><button data-act="sheetclose">Schließen</button></div>' +
+        '<div class="stats">' + (editable ? '<button class="istat" data-act="incopen" aria-expanded="' + !!sh.inc + '"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎</span></button>' : '<div><b class="pos">' + eur(t.i) + '</b><span>Einnahmen</span></div>') + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
-      else if (isPlan(m)) h += '<p class="small muted">Geplant aus deinen festen Posten, Kreditraten und geschätzten Alltagsausgaben (Schnitt der letzten 6 Monate).</p>';
-      if (!(bankMonths()[m] && mi(m) < mi(curMonth()))) h += incEdit(m);
+      else if (isPlan(m)) h += '<p class="small muted">Geplant: feste Posten plus Schnitt der letzten 6 Monate.</p>';
+      if (editable && sh.inc) h += incEdit(m);
       ["out", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
@@ -866,19 +874,16 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   /* v12 (Wunsch des Besitzers): Einnahmen im Monatsblatt anpassen – Betrag nur für diesen Monat (`over`), ab diesem Monat
      (`changes`) oder eine einmalige Einnahme (fester Posten mit start = end, z. B. Weihnachtsgeld, das jedes Jahr anders ausfällt). */
+  function salRec(m) { const l = recs().filter(r => r.type === "in" && r.cat === "gehalt" && r.end !== r.start && active(r, m)); l.sort((x, y) => amountAt(y, m) - amountAt(x, m)); return l[0] || null; }
   function incEdit(m) {
-    const list = recs().filter(r => r.type === "in" && dueIn(r, m));
-    let h = '<div class="sec"><h3>Einnahmen anpassen</h3>';
-    h += list.map(r => {
-      const once = r.end === r.start, ov = r.over && r.over[m] != null;
-      return '<div class="incrow"><div class="ih"><b>' + esc(r.name) + '</b><span class="small muted">' + (once ? "einmalig" : ov ? "nur in diesem Monat angepasst" : "fest, " + EVERY[r.every || 1]) + "</span></div>" +
-        '<div class="row" style="align-items:center"><label class="f1" style="flex:1 1 110px">Betrag (€)<input id="inc-' + esc(r.id) + '" inputmode="decimal" autocomplete="off" value="' + String(amountAt(r, m)).replace(".", ",") + '"></label>' +
-        (once ? '<button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="once">Speichern</button><button class="danger" data-act="incdel" data-id="' + esc(r.id) + '">Entfernen</button>'
-          : '<button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="one">Nur dieser Monat</button><button data-act="incset" data-id="' + esc(r.id) + '" data-m="' + m + '" data-k="from">Ab ' + mshort(m) + "</button>" + (ov ? '<button class="ghost" data-act="increset" data-id="' + esc(r.id) + '" data-m="' + m + '">Zurücksetzen</button>' : "")) + "</div></div>";
-    }).join("");
-    h += '<div class="incrow"><div class="ih"><b>Einmalige Einnahme</b><span class="small muted">z. B. Weihnachtsgeld, Prämie</span></div><div class="row"><label class="f2">Bezeichnung<input id="inc-new-name" autocomplete="off" placeholder="Weihnachtsgeld"></label><label class="f1">Betrag (€)<input id="inc-new-amt" inputmode="decimal" autocomplete="off"></label></div>' +
-      '<div class="row" style="align-items:center"><button class="primary" data-act="incadd" data-m="' + m + '">Hinzufügen</button><span class="small muted" id="inc-msg"></span></div></div></div>';
-    return h;
+    const r = salRec(m), once = recs().filter(x => x.type === "in" && x.end === x.start && x.start === m), mode = S.sheet.incMode || "from";
+    let h = '<div class="incbox"><div class="row" style="align-items:end"><label style="flex:1 1 120px">Netto-Gehalt ' + mshort(m) + '<input id="inc-sal" inputmode="decimal" autocomplete="off" value="' + (r ? String(amountAt(r, m)).replace(".", ",") : "") + '"></label>' +
+      '<div class="seg" role="group" aria-label="Gültig"><button data-act="incmode" data-id="from" aria-pressed="' + (mode === "from") + '">ab jetzt</button><button data-act="incmode" data-id="one" aria-pressed="' + (mode === "one") + '">nur ' + mshort(m) + "</button></div>" +
+      '<button class="primary" data-act="incsave" data-m="' + m + '">OK</button></div>';
+    h += once.map(x => '<div class="incone"><span>' + esc(x.name) + '</span><b class="pos">+' + eur(x.amount) + '</b><button class="ghost danger" data-act="incdel" data-id="' + esc(x.id) + '" aria-label="' + esc(x.name) + ' entfernen">✕</button></div>').join("");
+    h += S.sheet.incAdd ? '<div class="row" style="align-items:end"><label class="f2">Einmalzahlung<input id="inc-new-name" autocomplete="off" value="Weihnachtsgeld"></label><label class="f1">Betrag (€)<input id="inc-new-amt" inputmode="decimal" autocomplete="off"></label><button data-act="incadd" data-m="' + m + '">Hinzufügen</button></div>'
+      : '<button class="ghost" style="align-self:flex-start" data-act="incaddopen">+ Einmalzahlung (z. B. Weihnachtsgeld)</button>';
+    return h + "</div>";
   }
   function openSheet() {
     let d = $("sheetov");
@@ -886,7 +891,38 @@ td button { padding: 4px 8px; font-size: 13px }
     $("sheet").innerHTML = sheetHtml(); $("sheet").scrollTop = 0;
   }
   function refreshSheet() { if ($("sheetov") && S.sheet) $("sheet").innerHTML = sheetHtml(); }
-  function closeSheet() { const d = $("sheetov"); if (d) d.remove(); S.sheet = null; }
+  function closeSheet() {
+    const d = $("sheetov"); if (d) d.remove();
+    if (S.sheet && S.sheet.k === "m" && S.sheet.m !== S.sbSel && S.sb && S.sb.sm.indexOf(S.sheet.m) >= 0) { S.sbSel = S.sheet.m; S.sbMoved = false; renderSum(); }
+    S.sheet = null;
+  }
+  /* Monatsblatt: links/rechts wischen = vorheriger/nächster Monat (Wunsch des Besitzers), mit Haptik */
+  function sheetMonth(step, anim) {
+    const sh = S.sheet; if (!sh || sh.k !== "m") return;
+    sh.m = im(mi(sh.m) + step); sh.inc = false; sh.incAdd = false; sh.open = {};
+    const el = $("sheet"); haptic(true);
+    if (!anim || (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) { el.innerHTML = sheetHtml(); el.scrollTop = 0; return; }
+    el.style.transition = "transform .14s ease-in, opacity .14s"; el.style.transform = "translateX(" + (-step * 40) + "%)"; el.style.opacity = "0";
+    setTimeout(() => { el.innerHTML = sheetHtml(); el.scrollTop = 0; el.style.transition = "none"; el.style.transform = "translateX(" + (step * 30) + "%)"; void el.offsetWidth;
+      el.style.transition = "transform .18s ease-out, opacity .18s"; el.style.transform = ""; el.style.opacity = ""; setTimeout(() => { el.style.transition = ""; }, 200); }, 140);
+  }
+  let SSW = null;
+  document.addEventListener("touchstart", ev => {
+    SSW = null; const sh = $("sheet"); if (!sh || !S.sheet || S.sheet.k !== "m" || ev.touches.length !== 1 || !sh.contains(ev.target)) return;
+    for (let n = ev.target; n && n !== sh; n = n.parentElement) { if (/^(INPUT|SELECT|TEXTAREA)$/.test(n.tagName)) return; if (n.scrollWidth > n.clientWidth + 2) { const ox = getComputedStyle(n).overflowX; if (ox === "auto" || ox === "scroll") return; } }
+    const t = ev.touches[0]; SSW = { x: t.clientX, y: t.clientY, dir: 0, dx: 0, t: Date.now() };
+  }, { passive: true });
+  document.addEventListener("touchmove", ev => {
+    if (!SSW || ev.touches.length !== 1) return; const t = ev.touches[0], dx = t.clientX - SSW.x, dy = t.clientY - SSW.y;
+    if (!SSW.dir) { if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; SSW.dir = Math.abs(dx) > Math.abs(dy) * 1.3 ? 1 : -1; }
+    if (SSW.dir < 0) return; SSW.dx = dx; const el = $("sheet"); el.style.transition = "none"; el.style.transform = "translateX(" + dx * 0.6 + "px)";
+  }, { passive: true });
+  document.addEventListener("touchend", () => {
+    if (!SSW || SSW.dir !== 1) { SSW = null; return; }
+    const s = SSW; SSW = null; const el = $("sheet"); if (!el) return;
+    if (Math.abs(s.dx) > 60 || (Math.abs(s.dx) > 35 && Date.now() - s.t < 300)) { el.style.transform = ""; sheetMonth(s.dx < 0 ? 1 : -1, true); }
+    else { el.style.transition = "transform .2s ease"; el.style.transform = ""; setTimeout(() => { el.style.transition = ""; }, 220); }
+  });
 
   /* ---------- Budgets (Limits pro Kategorie und Monat) ---------- */
   function budHint() {
@@ -1159,28 +1195,31 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
+    else if (a === "shm") { sheetMonth(+id, true); }
     else if (a === "cexp") { if (!S.sheet) return; S.sheet.open = S.sheet.open || {}; S.sheet.open[id] = !S.sheet.open[id]; const sc = $("sheet").scrollTop; refreshSheet(); $("sheet").scrollTop = sc; }
-    else if (a === "incset" || a === "increset") {
-      const r = S.rec[id], m = b.dataset.m; if (!r) return;
-      const d = JSON.parse(JSON.stringify(r)), v = a === "incset" ? num(($("inc-" + id) || {}).value) : null;
-      if (a === "incset" && !(v > 0)) { const el = $("inc-" + id); if (el) el.focus(); return; }
-      if (a === "increset") { if (d.over) delete d.over[m]; }
-      else if (b.dataset.k === "once") d.amount = v;
-      else if (b.dataset.k === "one") { d.over = d.over || {}; d.over[m] = v; }
+    else if (a === "incopen") { if (!S.sheet) return; S.sheet.inc = !S.sheet.inc; refreshSheet(); if (S.sheet.inc) { const el = $("inc-sal"); if (el) el.focus(); } }
+    else if (a === "incmode") { S.sheet.incMode = id; press("incmode", id); }
+    else if (a === "incaddopen") { S.sheet.incAdd = true; refreshSheet(); const el = $("inc-new-amt"); if (el) el.focus(); }
+    else if (a === "incsave") {
+      const m = b.dataset.m, v = num($("inc-sal").value), r = salRec(m); if (!(v > 0)) { $("inc-sal").focus(); return; }
+      if (!r) put(rid("r"), { kind: "rec", name: "Gehalt", amount: v, type: "in", cat: "gehalt", every: 1, start: m, end: null, changes: [], note: "", example: false });
       else {
-        if (d.over) Object.keys(d.over).forEach(k => { if (mi(k) >= mi(m)) delete d.over[k]; });
-        if (mi(m) <= mi(d.start)) d.amount = v;
-        else { d.changes = (d.changes || []).filter(c => mi(c.from) < mi(m)); d.changes.push({ from: m, amount: v }); }
+        const d = JSON.parse(JSON.stringify(r)); delete d.id;
+        if ((S.sheet.incMode || "from") === "one") { d.over = d.over || {}; d.over[m] = v; }
+        else {
+          if (d.over) { Object.keys(d.over).forEach(k => { if (mi(k) >= mi(m)) delete d.over[k]; }); if (!Object.keys(d.over).length) delete d.over; }
+          if (mi(m) <= mi(d.start)) d.amount = v; else { d.changes = (d.changes || []).filter(c => mi(c.from) < mi(m)); d.changes.push({ from: m, amount: v }); }
+        }
+        put(r.id, d);
       }
-      if (d.over && !Object.keys(d.over).length) delete d.over;
-      put(id, d); haptic(); renderAll();
+      S.sheet.inc = false; haptic(); renderAll();
     }
     else if (a === "incdel") { if (arm(b, "Sicher?")) { put(id, null); renderAll(); } }
     else if (a === "incadd") {
-      const m = b.dataset.m, name = $("inc-new-name").value.trim() || "Einmalige Einnahme", v = num($("inc-new-amt").value);
-      if (!(v > 0)) { $("inc-msg").textContent = "Bitte einen Betrag eintragen."; $("inc-new-amt").focus(); return; }
+      const m = b.dataset.m, name = $("inc-new-name").value.trim() || "Einmalzahlung", v = num($("inc-new-amt").value);
+      if (!(v > 0)) { $("inc-new-amt").focus(); return; }
       put(rid("r"), { kind: "rec", name, amount: v, type: "in", cat: "gehalt", every: 1, start: m, end: m, changes: [], note: "einmalig", example: false });
-      haptic(); renderAll();
+      S.sheet.incAdd = false; haptic(); renderAll();
     }
     else if (a === "cty") { S.cty = id; renderSum(); }
     else if (a === "cunit") { S.cunit = id; renderSum(); }
