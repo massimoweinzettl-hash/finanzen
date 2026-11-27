@@ -24,3 +24,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v17: Einnahmen im Monatsblatt nur noch EIN Feld: Netto-Einnahmen dieses Monats (Doc `incover`), ersetzt alle Einnahmen des Monats (Besitzer: keine Unterscheidung, nur dieser Monat).
 - v18: Schätzung kommender Monate ohne Doppelzählung: Kategorie-Schnitt der letzten 6 Monate minus feste Posten der Kategorie (vorher z. B. Tanken als fester Posten plus alle Tankbelege, ~3.800 € statt ~3.460 € Ausgaben).
 - v19: Unsichtbare Haptik-Schalter in Saldo-Balken und ‹ › des Monatsblatts (iPhone: Haptik nur bei echtem Antippen, beim Wischen nicht möglich).
+- v20: Sparen zählt nicht mehr als Ausgabe, sondern erscheint getrennt als „gespart“ (Entscheidung des Besitzers).

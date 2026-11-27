@@ -389,7 +389,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 19;
+  var APP_VERSION = 20;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -691,9 +691,12 @@ td button { padding: 4px 8px; font-size: 13px }
     txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example }); });
     return out;
   }
+  /* v20 (Entscheidung des Besitzers): Sparen & Anlegen ist keine Ausgabe, sondern wird getrennt als „gespart“ gezeigt.
+     Saldo = Einnahmen − Ausgaben (ohne Sparen). */
+  const isSave = x => x.type === "out" && x.cat === "sparen";
   function totals(m) {
-    let i = 0, o = 0; monthItems(m).forEach(x => { if (x.type === "in") i += x.amount; else o += x.amount; });
-    return { i, o, s: i - o };
+    let i = 0, o = 0, sp = 0; monthItems(m).forEach(x => { if (x.type === "in") i += x.amount; else if (isSave(x)) sp += x.amount; else o += x.amount; });
+    return { i, o, sp, s: i - o };
   }
   const hasExamples = () => recs().some(r => r.example) || txs().some(t => t.example) || loans().some(l => l.example);
   const exTag = x => x.example ? '<span class="tag">Beispiel</span>' : "";
@@ -707,9 +710,9 @@ td button { padding: 4px 8px; font-size: 13px }
   const perLabel = () => S.cper === "y" ? "Jahr " + S.year : mname(S.month);
   const isPlan = m => mi(m) > mi(curMonth());
   const pct = (v, t) => t > 0 ? (v / t * 100 < 1 && v > 0 ? "<1 %" : Math.round(v / t * 100) + " %") : "–";
-  function catSums(ms, ty) {
+  function catSums(ms, ty, withSave) {
     const by = {}, n = {}; let tot = 0;
-    ms.forEach(m => monthItems(m).forEach(x => { if (x.type !== ty) return; by[x.cat] = (by[x.cat] || 0) + x.amount; n[x.cat] = (n[x.cat] || 0) + 1; tot += x.amount; }));
+    ms.forEach(m => monthItems(m).forEach(x => { if (ty === "save" ? !isSave(x) : x.type !== ty || (!withSave && isSave(x))) return; by[x.cat] = (by[x.cat] || 0) + x.amount; n[x.cat] = (n[x.cat] || 0) + 1; tot += x.amount; }));
     return { rows: Object.keys(by).map(c => ({ c, v: by[c], n: n[c] })).sort((a, b) => b.v - a.v), tot };
   }
   function donut(rows, tot, ty) {
@@ -775,7 +778,7 @@ td button { padding: 4px 8px; font-size: 13px }
   /* Ausgewählter Monat = Balken unter der Mitte; Anzeige oben zeigt Saldo, Einnahmen und Ausgaben dieses Monats */
   function sreadHtml(m) {
     const j = S.sb ? S.sb.sm.indexOf(m) : -1, t = j >= 0 ? S.sb.st[j] : totals(m), none = !t.i && !t.o;
-    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o)) + '</span></div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
+    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o) + (t.sp ? " · gespart " + eur(t.sp) : "")) + '</span></div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
   }
   function sbPick() {
     const sc = $("sscroll"); if (!sc || !sc.clientWidth) return;
@@ -802,7 +805,7 @@ td button { padding: 4px 8px; font-size: 13px }
   /* ---------- Geldfluss (Sankey): Einnahmen → Budget → Ausgaben + Übrig, gleicher Zeitraum wie Kategorien ---------- */
   function sankeyBlock() {
     const yr = S.sper === "y", ms = yr ? [...Array(12)].map((_, j) => S.year + "-" + pad(j + 1)) : [S.month], lab = yr ? "Jahr " + S.year : mname(S.month);
-    const ci = catSums(ms, "in"), co = catSums(ms, "out"), ti = ci.tot, to = co.tot, base = ti || to;
+    const ci = catSums(ms, "in"), co = catSums(ms, "out", true), ti = ci.tot, to = co.tot, base = ti || to;
     let h = '<div class="block"><h2>Geldfluss</h2><div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="sper" data-id="m" aria-pressed="' + !yr + '">Monat</button><button data-act="sper" data-id="y" aria-pressed="' + yr + '">Jahr</button></div>' +
       '<div class="seg" role="group" aria-label="Einheit"><button data-act="sunit" data-id="eur" aria-pressed="' + (S.sunit !== "pct") + '">€</button><button data-act="sunit" data-id="pct" aria-pressed="' + (S.sunit === "pct") + '">%</button></div></div>' +
       '<div class="month"><button data-act="' + (yr ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + lab + '</b><button data-act="' + (yr ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div>';
@@ -851,17 +854,17 @@ td button { padding: 4px 8px; font-size: 13px }
   function sheetHtml() {
     const sh = S.sheet; if (!sh) return "";
     if (sh.k === "m") {
-      const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
+      const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x));
       let h = '<div class="shead"><div class="month" style="gap:6px"><button class="hb" data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹' + HSW + '</button><h2>' + mname(m) + '</h2><button class="hb" data-act="shm" data-id="1" aria-label="Nächster Monat">›' + HSW + '</button></div><button data-act="sheetclose">Schließen</button></div>' +
         '<div class="stats">' + (sh.inc ? '<div class="istat ed"><input id="inc-tot" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-m="' + m + '" value="' + (Math.round(t.i * 100) / 100).toString().replace(".", ",") + '"><span>Netto-Einnahmen · leer = automatisch</span></div>'
-          : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
+          : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + eur(t.sp) + '</b><span>gespart</span></div>' + "</div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
       else if (isPlan(m)) h += '<p class="small muted">Geplant: feste Posten plus Schnitt der letzten 6 Monate.</p>';
-      ["out", "in"].forEach(ty => {
+      ["out", "save", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
-        h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
+        h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen nach Kategorie" : ty === "save" ? "Gespart" : "Ausgaben nach Kategorie") + "</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
           let x = '<button class="crow" data-act="cexp" data-id="' + esc(key) + '" aria-expanded="' + op + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + ' <span class="chev">' + (op ? "▴" : "▾") + "</span></span></button>";
-          if (op) { const its = items.filter(i => i.type === ty && i.cat === r.c).sort((a, b) => (b.date || "") < (a.date || "") ? -1 : (b.date || "") > (a.date || "") ? 1 : b.amount - a.amount);
+          if (op) { const its = items.filter(i => (ty === "save" ? isSave(i) : i.type === ty) && i.cat === r.c).sort((a, b) => (b.date || "") < (a.date || "") ? -1 : (b.date || "") > (a.date || "") ? 1 : b.amount - a.amount);
             x += '<div class="cexp tablewrap"><table><tbody>' + its.map(i => itemRow(i, false)).join("") + "</tbody></table></div>"; }
           return x; }).join("") + "</div></div>";
       });
