@@ -38,3 +38,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v32: Kontostand-Linie mit Beträgen alle 3 Monate (ab 1.000 als „k“).
 - v33: Kontostand-Linie hängt an der Saldo-Leiste (`#kscroll` und `#sscroll` scrollen gemeinsam, gleiche Spalten `SBW`), jeder Monat beschriftet mit Betrag, gewählter Monat hervorgehoben; Höhe passt sich den sichtbaren Monaten an (`kontoSvg(a, b)`).
 - v34: Reiter „Budgets“ samt Monatslimits entfernt (Wunsch des Besitzers). Neue Reiter: Übersicht · Fixkosten · Abos · Kredite · Transaktionen. Fixkosten und Abos teilen Formular/Liste (`#tab-rec`, `S.rmode`), Abos = Kategorie „abo“ mit Summe pro Monat/Jahr. Alte gespeicherte Reiter (bud/rec/lim) landen auf „Fixkosten“.
+- v35: Fix „Heute“ blieb hängen: Kontostand-Linie und Saldo-Leiste kämpften beim weichen Scrollen gegeneinander. Jetzt führt nur die zuletzt angefasste Leiste (`S.kLead`), „Heute“ führt über den Saldo.

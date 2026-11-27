@@ -384,7 +384,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 34;
+  var APP_VERSION = 35;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -872,8 +872,12 @@ td button { padding: 4px 8px; font-size: 13px }
     k.scrollLeft = sc.scrollLeft;
     let raf = 0; const re = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; const CW = SBW + 4, pad = k.clientWidth / 2 - SBW / 2, a = Math.floor((k.scrollLeft - pad) / CW), b = Math.ceil((k.scrollLeft + k.clientWidth - pad) / CW), n = S.kv.length - 1; const el = $("ksvg"); if (el) el.innerHTML = kontoSvg(Math.max(0, Math.min(n, a)), Math.max(0, Math.min(n, b))); }); };
     re(); k.addEventListener("scroll", re, { passive: true });
-    sc.addEventListener("scroll", () => { if (Math.abs(k.scrollLeft - sc.scrollLeft) > 1) { S.kSync = true; k.scrollLeft = sc.scrollLeft; } }, { passive: true });
-    k.addEventListener("scroll", () => { if (S.kSync) { S.kSync = false; return; } if (Math.abs(k.scrollLeft - sc.scrollLeft) > 1) sc.scrollLeft = k.scrollLeft; }, { passive: true });
+    /* Führung hat die Leiste, die zuletzt angefasst wurde (oder „Heute“ = Saldo). Nur die führende Leiste schiebt die andere,
+       sonst kämpfen beide beim weichen Scrollen gegeneinander (v35-Fix: „Heute“ blieb hängen). */
+    S.kLead = "s";
+    ["touchstart", "pointerdown", "wheel"].forEach(ev => { k.addEventListener(ev, () => { S.kLead = "k"; }, { passive: true }); sc.addEventListener(ev, () => { S.kLead = "s"; }, { passive: true }); });
+    sc.addEventListener("scroll", () => { if (S.kLead === "s" && Math.abs(k.scrollLeft - sc.scrollLeft) > 1) k.scrollLeft = sc.scrollLeft; }, { passive: true });
+    k.addEventListener("scroll", () => { if (S.kLead === "k" && Math.abs(k.scrollLeft - sc.scrollLeft) > 1) sc.scrollLeft = k.scrollLeft; }, { passive: true });
   }
 
 
@@ -1370,7 +1374,7 @@ td button { padding: 4px 8px; font-size: 13px }
       put(idx, { kind: "loan", name, lender: $("lf-lender").value.trim(), balance, rate, interest, asOf, original: num($("lf-orig").value) || null, first, balloon, end: balloon ? end : null, note: $("lf-note").value.trim(), example: old ? !!old.example : false, paidoff: old && old.paidoff || null, payoff: old && old.payoff || null });
       $("lf-msg").textContent = "„" + name + "“ gespeichert."; resetLoanForm(); renderAll();
     }
-    else if (a === "stoday") { const sc = $("sscroll"), cur = sc && sc.querySelector('.sb[aria-current="true"]'); if (!cur) return; const r = cur.getBoundingClientRect(), rs = sc.getBoundingClientRect(); S.sbMoved = false; sc.scrollTo({ left: Math.max(0, sc.scrollLeft + (r.left + r.width / 2) - (rs.left + sc.clientWidth / 2)), behavior: "smooth" }); }
+    else if (a === "stoday") { S.kLead = "s"; const sc = $("sscroll"), cur = sc && sc.querySelector('.sb[aria-current="true"]'); if (!cur) return; const r = cur.getBoundingClientRect(), rs = sc.getBoundingClientRect(); S.sbMoved = false; sc.scrollTo({ left: Math.max(0, sc.scrollLeft + (r.left + r.width / 2) - (rs.left + sc.clientWidth / 2)), behavior: "smooth" }); }
     else if (a === "lpaid") { S.lpay = id || null; renderLoan(); }
     else if (a === "lpaidsave") {
       const l = S.loans[id], m = $("lp-m").value, v = num($("lp-a").value); if (!l || !isMon(m)) return;
