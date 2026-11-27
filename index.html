@@ -380,7 +380,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 13;
+  var APP_VERSION = 14;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -753,6 +753,9 @@ td button { padding: 4px 8px; font-size: 13px }
     el.innerHTML = h;
     if (keep != null) $("sscroll").scrollLeft = keep; else posBars();
     let raf = 0;
+    /* Haptik pro Monat: iPhone/Safari löst den Schalter-Klick nur während einer Berührung aus, daher die Auswahl auch direkt im touchmove prüfen
+       (Schwung nach dem Loslassen bleibt dort ohne Haptik). Android: vibrate. */
+    $("sscroll").addEventListener("touchmove", () => sbPick(), { passive: true });
     $("sscroll").addEventListener("scroll", () => { if (!S.sbAuto) S.sbMoved = true; S.sbAuto = false; if (!raf) raf = requestAnimationFrame(() => { raf = 0; sbPick(); }); }, { passive: true });
   }
   /* Ausgewählter Monat = Balken unter der Mitte; Anzeige oben zeigt Saldo, Einnahmen und Ausgaben dieses Monats */
@@ -766,7 +769,7 @@ td button { padding: 4px 8px; font-size: 13px }
     let best = null, bd = 1e9; sc.querySelectorAll(".sb").forEach(b => { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } });
     if (!best || best.dataset.id === S.sbSel) return;
     S.sbSel = best.dataset.id; sc.querySelectorAll(".sb.sel").forEach(b => b.classList.remove("sel")); best.classList.add("sel");
-    $("sread").innerHTML = sreadHtml(S.sbSel); haptic();
+    $("sread").innerHTML = sreadHtml(S.sbSel); haptic(true);
   }
   /* Laufender Monat etwa bei zwei Dritteln, damit Rückblick und Zukunft zu sehen sind */
   function posBars() {
@@ -1281,8 +1284,8 @@ td button { padding: 4px 8px; font-size: 13px }
   document.addEventListener("mouseup", ev => { if (numSel && ev.target === numSel) { ev.preventDefault(); numSel = null; } });
   /* Haptik: Android über vibrate, iPhone über einen versteckten Schalter (System-Klick, ab iOS 18). In den Reitern liegt der Schalter direkt im Knopf. */
   let HAPT = null;
-  function haptic() {
-    try { if (navigator.vibrate && navigator.vibrate(15)) return; } catch (e) {}
+  function haptic(light) {
+    try { if (navigator.vibrate && navigator.vibrate(light ? 8 : 15)) return; } catch (e) {}
     try {
       if (!HAPT) { HAPT = document.createElement("label"); HAPT.setAttribute("aria-hidden", "true"); HAPT.style.cssText = "position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none";
         const cb = document.createElement("input"); cb.type = "checkbox"; cb.setAttribute("switch", ""); cb.tabIndex = -1; HAPT.appendChild(cb); document.body.appendChild(HAPT); }

@@ -2,7 +2,7 @@
 
 Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei jeder Änderung mitpflegen.** Nur der aktuelle Stand; Geschichte in `VERLAUF.md`. Das Repo ist öffentlich – nichts Persönliches eintragen, keine echten Beträge.
 
-**Stand:** v13 (27.11.2026)
+**Stand:** v14 (27.11.2026)
 
 ## Nach jeder Änderung
 - `APP_VERSION` in `index.html` +1 (die installierte App zeigt dann „Update bereit“).
