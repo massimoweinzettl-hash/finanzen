@@ -23,21 +23,23 @@ WICHTIG
 
 WO FINDE ICH WAS?
 -----------------
-- Übersicht: Saldo pro Monat als Balkendiagramm, wischbar in Vergangenheit und
-  Zukunft (Balken antippen = Überblick mit Einnahmen,
-  Ausgaben und Kategorien), darunter Kategorien als Kuchendiagramm, umschaltbar
-  Ausgaben/Einnahmen, € oder %, Monat oder Jahr. Kategorie antippen zeigt alle
-  Einträge darin. Geldfluss (Sankey): Einnahmen → Ausgaben, Monat/Jahr, € / %,
-  mit Sparquote und Sparrate pro Monat. Kommende Monate schätzen Alltagsausgaben
-  aus dem Schnitt der letzten 6 Monate.
-- Fixkosten: Gehalt, Miete, Versicherungen, Jahressonderzahlung, Prämie usw.
-  mit Rhythmus; "Betrag ändert sich später" für Gehaltserhöhungen
-  (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
-- Abos: alles in der Kategorie "Abos & Mitgliedschaften", mit Summe pro Monat und Jahr.
-- Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
-  Rechner für Sondertilgung, vorzeitige Ablösung. Raten zählen automatisch als Ausgabe.
-- Transaktionen: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
+Navigation unten: Übersicht · Umsätze · Verträge · Sparziele · Analyse.
+- Übersicht (Dashboard): Gesamtvermögen (Girokonto + Depot) mit Veränderung zum
+  Vormonat, Auge blendet Beträge aus; Einnahmen- und Ausgaben-Karte des Monats;
+  Kategorien als Kuchendiagramm (Ausgaben/Einnahmen, € oder %, Monat oder Jahr,
+  Kategorie antippen zeigt die Einträge); wichtigste Sparziele.
+- Umsätze: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
   den CSV-Export der Bank (nur auf dem Gerät, doppelte werden erkannt).
+- Verträge, oben umschaltbar (merkt sich die letzte Auswahl):
+  - Fixkosten: Gehalt, Miete, Versicherungen, Jahressonderzahlung, Prämie usw.
+    mit Rhythmus; "Betrag ändert sich später" für Gehaltserhöhungen.
+  - Abos: alles in der Kategorie "Abos & Mitgliedschaften", Summe pro Monat und Jahr.
+  - Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
+    Rechner für Sondertilgung, vorzeitige Ablösung.
+- Sparziele: Name, Symbol, Ziel, schon gespart, Sparrate pro Monat; Fortschritt
+  und voraussichtliches Erreichen; "+ Betrag" bucht Eingezahltes dazu.
+- Analyse: Kontostand und Depot mit Verlauf, Saldo pro Monat (wischbar,
+  "Heute", "Ende" = letzte Kreditrate), Geldfluss (Sankey).
 - Zahnrad: Sicherung speichern und einspielen, Version.
 
 Kredit vorzeitig ablösen: Kredite → beim Kredit „Vorzeitig abgelöst“ → Monat und (optional) Ablösebetrag → „Ablösung speichern“. Frühere Raten bleiben stehen. Mit „Ablösung zurücknehmen“ rückgängig.

@@ -5,8 +5,8 @@
 <meta name="viewport" id="vpm" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Finanzen</title>
 <meta name="description" content="Einnahmen, Ausgaben, Fixkosten, Abos, Versicherungen und Kredite im Überblick.">
-<meta name="theme-color" content="#f1f3f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#efe9df" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1612" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Finanzen">
@@ -23,24 +23,26 @@ body { margin: 0 }
 [hidden] { display: none !important }
 /* Finanzen – Aufbau wie Trainingslog (Design „Klassisch“): eine Spalte, Reiter oben, Blöcke untereinander. */
 :root {
-  --bg: #f1f3f7; --surface: #ffffff; --sunken: #e8ebf1; --ink: #151a22; --muted: #5a6474; --line: #d6dbe4;
-  --accent: #2447d6; --accent-ink: #ffffff; --accent-soft: #e4e9fb;
-  --good: #17754a; --good-soft: #dff3e8; --warn: #8a5a00; --warn-soft: #f8ecd0; --bad: #b3261e;
-  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  /* v45 Premium-Look (Wunsch des Besitzers, nach seiner Designvorlage): Waldgrün, Creme, helles Beige, dezentes Gold, Serifen für Überschriften und Beträge */
+  --bg: #efe9df; --surface: #faf7f1; --sunken: #ebe4d8; --ink: #1c2a22; --muted: #6a6f63; --line: #ddd4c5;
+  --accent: #1f3d2f; --accent-ink: #f7f3ec; --accent-soft: #dde6dc; --gold: #b08d52; --hero1: #15291f; --hero2: #2b4a39;
+  --good: #2f6b47; --good-soft: #dde9df; --warn: #8a5a00; --warn-soft: #f4e6c8; --bad: #a8432f;
+  --shadow: 0 1px 2px rgba(40, 33, 20, .06), 0 6px 18px rgba(40, 33, 20, .06);
+  --display: ui-serif, "New York", "Iowan Old Style", Georgia, serif;
   --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0e1116; --surface: #171b22; --sunken: #1f242d; --ink: #e9ecf1; --muted: #9aa4b3; --line: #2b313c;
-  --accent: #8ea5ff; --accent-ink: #0c1124; --accent-soft: #1d2647;
-  --good: #62d39b; --good-soft: #143325; --warn: #e8b85a; --warn-soft: #3a2c0c; --bad: #ff8a80; color-scheme: dark } }
+  --bg: #0f1612; --surface: #17211b; --sunken: #1f2b24; --ink: #ede7db; --muted: #a2a597; --line: #2b3a31;
+  --accent: #cfb27a; --accent-ink: #15211a; --accent-soft: #2d3a2c; --gold: #cfb27a; --hero1: #13241a; --hero2: #2a4a37;
+  --good: #86c89f; --good-soft: #1d3326; --warn: #e8b85a; --warn-soft: #3a2c0c; --bad: #e59078; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark } }
 /* Kategorie-Farben: feste Zuordnung pro Kategorie (Farbe folgt der Kategorie, nicht dem Rang) */
-:root { --c1: #257de0; --c2: #f47230; --c3: #00b894; --c4: #f2a600; --c5: #ee7fac; --c6: #008a17; --c7: #6a4ce2; --c8: #ec4647; --c0: #a3a9b3 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c1: #338ced; --c2: #e76624; --c3: #00a888; --c4: #d28e05; --c5: #e24d8b; --c6: #0aac23; --c7: #9887ef; --c8: #eb6263; --c0: #5d6470 } }
-:root[data-theme="dark"] { --c1: #338ced; --c2: #e76624; --c3: #00a888; --c4: #d28e05; --c5: #e24d8b; --c6: #0aac23; --c7: #9887ef; --c8: #eb6263; --c0: #5d6470 }
+:root { --c1: #1f4a35; --c2: #b08d52; --c3: #6f9479; --c4: #a9a777; --c5: #c98f6b; --c6: #3f7a5a; --c7: #7a5c43; --c8: #a8432f; --c0: #c3bbac }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c1: #5f9d7b; --c2: #cfb27a; --c3: #8fb39a; --c4: #c2c08f; --c5: #dba584; --c6: #7cbf98; --c7: #b08f73; --c8: #e08a74; --c0: #6c6a60 } }
+:root[data-theme="dark"] { --c1: #5f9d7b; --c2: #cfb27a; --c3: #8fb39a; --c4: #c2c08f; --c5: #dba584; --c6: #7cbf98; --c7: #b08f73; --c8: #e08a74; --c0: #6c6a60 }
 :root[data-theme="dark"] {
-  --bg: #0e1116; --surface: #171b22; --sunken: #1f242d; --ink: #e9ecf1; --muted: #9aa4b3; --line: #2b313c;
-  --accent: #8ea5ff; --accent-ink: #0c1124; --accent-soft: #1d2647;
-  --good: #62d39b; --good-soft: #143325; --warn: #e8b85a; --warn-soft: #3a2c0c; --bad: #ff8a80; color-scheme: dark }
+  --bg: #0f1612; --surface: #17211b; --sunken: #1f2b24; --ink: #ede7db; --muted: #a2a597; --line: #2b3a31;
+  --accent: #cfb27a; --accent-ink: #15211a; --accent-soft: #2d3a2c; --gold: #cfb27a; --hero1: #13241a; --hero2: #2a4a37;
+  --good: #86c89f; --good-soft: #1d3326; --warn: #e8b85a; --warn-soft: #3a2c0c; --bad: #e59078; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark }
 * { box-sizing: border-box }
 /* App-Gefühl wie im Trainingslog (Wunsch des Besitzers): Oberfläche nicht markierbar, kein Kopier-Menü beim langen Drücken,
    kein grauer Tipp-Blitz, kein Zoomen per Fingergeste; Eingabefelder bleiben markierbar. */
@@ -61,7 +63,7 @@ td.act { width: 1%; padding-left: 8px }
 td.act button { display: block; width: 100%; margin: 3px 0 }
 body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); font-variant-numeric: tabular-nums; overflow-x: clip }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
-.wrap { max-width: 760px; margin: 0 auto; padding-block: 20px 56px;
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 20px calc(96px + env(safe-area-inset-bottom, 0px));
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: flex; flex-direction: column; gap: 16px }
 h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.2 }
@@ -72,11 +74,13 @@ p { margin: 0 }
 .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap }
 .sync { font-size: 12px; color: var(--muted) }
 .sync.err { color: var(--bad) }
-.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; gap: 4px; background: var(--bg); padding-block: 6px }
-.tabs button { flex: 1; min-width: 0; padding: 10px 4px; border: 0; border-bottom: 2px solid var(--line); background: none; color: var(--muted); font: 600 14px var(--body); cursor: pointer; border-radius: 0 }
-.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
+.bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; justify-content: center; gap: 2px; padding: 6px max(8px, env(safe-area-inset-left, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border-top: 1px solid var(--line) }
+.tabs button { flex: 1; max-width: 120px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border: 0; background: none; color: var(--muted); font: 600 11px var(--body); cursor: pointer; border-radius: 12px }
+.tabs button .ico { width: 24px; height: 24px }
+.vseg { display: flex } .vseg[hidden] { display: none } .vseg button { flex: 1 }
+.tabs button[aria-selected="true"] { color: var(--accent) } .tabs button[aria-selected="true"] .ico { stroke-width: 2.1 }
 section.tab { display: flex; flex-direction: column; gap: 16px }
-.block { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.block { background: var(--surface); border: 1px solid transparent; box-shadow: var(--shadow); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end }
 .row > * { min-width: 0 }
 .muted { color: var(--muted) }
@@ -136,7 +140,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .grphead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap }
 .prog { height: 10px; background: var(--sunken); border-radius: 5px; overflow: hidden }
 .prog i { display: block; height: 100%; background: var(--good) }
-@media (max-width: 480px) { .tabs button { flex: 1 1 auto; font-size: 12.5px; padding-inline: 3px } }
+
 .gear { border: 0; background: none; padding: 6px; margin: -6px 0 -6px -6px; color: var(--ink); display: inline-flex }
 .gear svg { width: 24px; height: 24px }
 .top .tl { display: flex; align-items: center; gap: 10px }
@@ -240,25 +244,52 @@ td button { padding: 4px 8px; font-size: 13px }
 .sheet table td:nth-child(2) { overflow-wrap: anywhere; width: 100% }
 .over-t { color: var(--bad); font-weight: 600 }
 @media (prefers-reduced-motion: no-preference) { button { transition: background-color .12s, border-color .12s } .bar .tr i, .cols .c i { transition: width .3s, height .3s } }
+
+/* ---------- v45 Premium-Look ---------- */
+h1 { font: 600 30px/1.15 var(--display); letter-spacing: -.01em }
+h2 { font-family: var(--display); font-weight: 600; font-size: 20px } h3 { font-family: var(--display); font-weight: 600 }
+.gear { width: 40px; height: 40px; border-radius: 50%; background: var(--sunken); margin: 0; justify-content: center; align-items: center }
+.hero { position: relative; overflow: hidden; border-radius: 22px; padding: 20px 20px 16px; color: #f4efe4; background: radial-gradient(120% 90% at 100% 0%, rgba(140, 180, 150, .28) 0%, transparent 55%), linear-gradient(150deg, var(--hero2), var(--hero1)); box-shadow: 0 10px 30px rgba(20, 40, 28, .25) }
+.hero::after { content: ""; position: absolute; right: -40px; top: -30px; width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .07); box-shadow: 0 0 0 26px rgba(255, 255, 255, .025), 0 0 0 60px rgba(255, 255, 255, .02); pointer-events: none }
+.hero .hl { display: flex; justify-content: space-between; align-items: center; font-size: 15px; opacity: .85 }
+.hero .hv { display: block; font: 600 38px/1.15 var(--display); letter-spacing: -.01em; margin: 6px 0 10px; color: #fbf8f1 }
+.hero .hchip { display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; padding: 5px 11px; font: 600 13px var(--body); background: rgba(150, 200, 160, .18); color: #b9e3c2 }
+.hero .hchip.dn { background: rgba(230, 140, 120, .18); color: #f2b3a3 } .hero button.hchip { color: #f4efe4; background: rgba(255, 255, 255, .14) }
+.hero .hsub { font-size: 13px; opacity: .75 } .hero .hsplit button { all: unset; cursor: pointer } .hero .hsplit { display: flex; gap: 14px; margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .12); font-size: 12.5px; opacity: .8; flex-wrap: wrap }
+.eyeb { border: 0; background: none; color: inherit; padding: 4px; min-height: 0; display: inline-flex } .eyeb .ico { width: 22px; height: 22px }
+.iocards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.ioc { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; border: 0; background: var(--surface); box-shadow: var(--shadow); border-radius: 18px; padding: 14px 16px; color: var(--ink); font-weight: 400; font-size: 14px }
+.ioc b { font: 600 21px var(--display); white-space: nowrap }
+.ii { display: inline-flex; width: 34px; height: 34px; border-radius: 10px; align-items: center; justify-content: center; margin-bottom: 8px } .ii .ico { width: 18px; height: 18px }
+.ii.in { background: var(--good-soft); color: var(--good) } .ii.out { background: #f3dcd3; color: var(--bad) }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ii.out { background: #3a231d } }
+.goal .gh { display: flex; align-items: center; gap: 12px } .goal .gt { flex: 1; min-width: 0; display: flex; flex-direction: column }
+.goal .gi { display: inline-flex; width: 44px; height: 44px; border-radius: 12px; background: var(--sunken); color: var(--accent); align-items: center; justify-content: center; flex: none } .goal .gi .ico { width: 24px; height: 24px }
+.goal .gp { font: 600 18px var(--display) } .gbar { height: 10px; border-radius: 5px; background: var(--sunken); overflow: hidden } .gbar i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--accent), #3f6f54) }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .gbar i { background: linear-gradient(90deg, #5f9d7b, #86c89f) } }
+button.block.goal { text-align: left; font-weight: 400; color: var(--ink); width: 100% } .goal .gadd input { flex: 1; min-width: 0 }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.ico { width: 20px; height: 20px }
 </style>
 </head>
 <body><div id="rotnote" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="15" y="5" width="18" height="34" rx="4"/><path d="M21 33h6"/><path d="M38 20a14 14 0 0 1 0 12M42 17a19 19 0 0 1 0 18" opacity=".5"/></svg>Bitte das Handy hochkant halten.</div>
 <div class="wrap">
   <div class="top">
-    <div class="tl"><button class="gear" data-act="more" aria-label="Einstellungen und Sicherung"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><h1>Finanzen</h1></div>
+    <div class="tl"><button class="gear" data-act="more" aria-label="Einstellungen und Sicherung"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><h1>Meine Finanzen</h1></div>
     <span class="sync"><span id="sync" role="status">Lade deine Daten …</span> <span class="ver" id="ver"></span></span>
   </div>
-  <div class="tabs" role="tablist">
-    <button role="tab" data-tab="sum" aria-selected="true">Übersicht<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-    <button role="tab" data-tab="fix" aria-selected="false">Fixkosten<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-    <button role="tab" data-tab="abo" aria-selected="false">Abos<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-    <button role="tab" data-tab="loan" aria-selected="false">Kredite<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-    <button role="tab" data-tab="tx" aria-selected="false">Transaktionen<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
-  </div>
+  <nav class="tabs bnav" role="tablist" aria-label="Bereiche">
+    <button role="tab" data-tab="sum" aria-selected="true"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/></svg><span>Übersicht</span><input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="tx" aria-selected="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg><span>Umsätze</span><input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="vtr" aria-selected="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span>Verträge</span><input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="goal" aria-selected="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8"/></svg><span>Sparziele</span><input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="ana" aria-selected="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V4M4 20h16"/><path d="m7 15 4-4 3 3 5-6"/></svg><span>Analyse</span><input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+  </nav>
   <div id="notice" class="note" hidden></div>
   <div id="bkwarn" class="note" hidden></div>
 
   <div class="tabclip">
+  <div class="seg vseg" id="vseg" role="group" aria-label="Verträge" hidden><button data-tab="fix" aria-pressed="true">Fixkosten</button><button data-tab="abo" aria-pressed="false">Abos</button><button data-tab="loan" aria-pressed="false">Kredite</button></div>
   <section class="tab" id="tab-sum"><p class="empty">Hier erscheint deine Monatsübersicht, sobald deine Daten geladen sind.</p></section>
 
 
@@ -313,6 +344,25 @@ td button { padding: 4px 8px; font-size: 13px }
       <div id="bankprev"></div>
     </div>
     <div id="txlist" style="display:flex;flex-direction:column;gap:16px"></div>
+  </section>
+
+  <section class="tab" id="tab-ana" hidden><p class="empty">Hier erscheinen Kontostand, Saldo und Geldfluss, sobald deine Daten geladen sind.</p></section>
+  <section class="tab" id="tab-goal" hidden>
+    <div id="goallist" style="display:flex;flex-direction:column;gap:16px"></div>
+    <div class="block">
+      <h2 id="gf-title">Sparziel anlegen</h2>
+      <div class="row">
+        <label class="f2">Name<input id="gf-name" autocomplete="off" placeholder="z. B. Reise, Notgroschen, Auto"></label>
+        <label class="f1">Symbol<select id="gf-icon"><option value="plane">Reise</option><option value="home">Wohnen</option><option value="car">Auto</option><option value="shield">Rücklage</option><option value="gift">Geschenk</option><option value="star">Sonstiges</option></select></label>
+      </div>
+      <div class="row">
+        <label class="f1">Zielbetrag (€)<input id="gf-target" inputmode="decimal" autocomplete="off"></label>
+        <label class="f1">Schon gespart (€)<input id="gf-saved" inputmode="decimal" autocomplete="off" placeholder="0"></label>
+      </div>
+      <label>Ich lege pro Monat zurück (€, optional)<input id="gf-rate" inputmode="decimal" autocomplete="off"></label>
+      <p class="small muted">Mit dem Monatsbetrag rechnet die App aus, wann du dein Ziel voraussichtlich erreichst. Den gesparten Betrag kannst du jederzeit mit „+ Betrag“ erhöhen.</p>
+      <div class="row" style="align-items:center"><button class="primary" data-act="gsave">Speichern</button><button data-act="gcancel" id="gf-cancel" hidden>Abbrechen</button><span class="small muted" id="gf-msg"></span></div>
+    </div>
   </section>
 
   <section class="tab" id="tab-loan" hidden>
@@ -380,19 +430,19 @@ td button { padding: 4px 8px; font-size: 13px }
     { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "shop", name: "Einkäufe & Shopping", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
   ];
 
-  const TABS = ["sum", "fix", "abo", "loan", "tx"], tabEl = t => $("tab-" + (t === "fix" || t === "abo" ? "rec" : t));
-  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, incov: {}, konto: null, tab: "sum", bsub: "lim", rmode: "fix", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
+  const TABS = ["sum", "tx", "fix", "abo", "loan", "goal", "ana"], tabEl = t => $("tab-" + (t === "fix" || t === "abo" ? "rec" : t));
+  const S = { ready: false, rec: {}, tx: {}, loans: {}, goals: {}, custom: [], budgets: {}, incov: {}, konto: null, tab: "sum", bsub: "lim", rmode: "fix", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
   const F = { changes: [], rtype: "out", redit: null, ttype: "out", tedit: null, ledit: null };
 
   /* ---------- Speicher: nur auf diesem Gerät (wie im Trainingslog) ----------
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 44;
+  var APP_VERSION = 45;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
-    const r = {}, t = {}, l = {}; let c = [], bu = {};
+    const r = {}, t = {}, l = {}, gl = {}; let c = [], bu = {};
     list.forEach(d => {
       if (d.id === "settings") c = (d.data && d.data.cats) || [];
       else if (d.id === "budgets") bu = (d.data && d.data.limits) || {};
@@ -403,7 +453,9 @@ td button { padding: 4px 8px; font-size: 13px }
       else if (d.data && d.data.kind === "rec") r[d.id] = d.data;
       else if (d.data && d.data.kind === "tx") t[d.id] = d.data;
       else if (d.data && d.data.kind === "loan") l[d.id] = d.data;
+      else if (d.data && d.data.kind === "goal") gl[d.id] = d.data;
     });
+    S.goals = gl;
     if (!list.some(d => d.id === "incover")) S.incov = {};
     if (!list.some(d => d.id === "konto")) S.konto = null;
     if (!list.some(d => d.id === "depot")) S.depot = null;
@@ -418,7 +470,7 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (id === "konto") S.konto = data || null;
     else if (id === "depot") S.depot = data || null;
     else if (id === "depotr") S.depotr = data || null;
-    else { const box = id.charAt(0) === "r" ? S.rec : id.charAt(0) === "l" ? S.loans : S.tx; if (data) box[id] = data; else delete box[id]; }
+    else { const box = id.charAt(0) === "g" ? S.goals : id.charAt(0) === "r" ? S.rec : id.charAt(0) === "l" ? S.loans : S.tx; if (data) box[id] = data; else delete box[id]; }
   }
   const DOCS = {};
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
@@ -564,6 +616,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (id === "budgets") return d.limits && typeof d.limits === "object" && Object.keys(d.limits).every(k => isNum(d.limits[k]) && d.limits[k] > 0) ? { kind: "budgets", limits: d.limits } : null;
     if (d.kind === "rec") return isStr(d.name) && isNum(d.amount) && isMon(d.start) && (d.type === "in" || d.type === "out") && [1, 3, 6, 12].includes(d.every) && (!d.changes || (Array.isArray(d.changes) && d.changes.every(c => isMon(c.from) && isNum(c.amount)))) && (!d.over || (typeof d.over === "object" && Object.keys(d.over).every(k => isMon(k) && isNum(d.over[k])))) ? d : null;
     if (d.kind === "tx") return isNum(d.amount) && isStr(d.date) && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && (d.type === "in" || d.type === "out") ? d : null;
+    if (d.kind === "goal") return isStr(d.name) && isNum(d.target) && d.target > 0 && isNum(d.saved) && (d.rate == null || isNum(d.rate)) ? d : null;
     if (d.kind === "loan") return isStr(d.name) && isNum(d.balance) && isNum(d.rate) && isMon(d.asOf) ? d : null;
     return null;
   }
@@ -610,9 +663,9 @@ td button { padding: 4px 8px; font-size: 13px }
   });
 
   /* Formular-Entwürfe: halb ausgefüllte Felder überstehen ein Neuladen der Seite */
-  const DRAFT_IDS = ["bf-amount", "rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"];
+  const DRAFT_IDS = ["gf-name", "gf-target", "gf-saved", "gf-rate", "bf-amount", "rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"];
   /* v44: Entwürfe nur für NEUE Einträge merken (nicht beim Ändern), nach Speichern/Abbrechen wird der Entwurf gelöscht */
-  function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { if ((F.ledit && id.startsWith("lf-")) || (F.redit && id.startsWith("rf-")) || (F.tedit && id.startsWith("tf-"))) return; const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
+  function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { if ((F.ledit && id.startsWith("lf-")) || (F.redit && id.startsWith("rf-")) || (F.tedit && id.startsWith("tf-")) || (F.gedit && id.startsWith("gf-"))) return; const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
   function restoreForms() { try { const o = JSON.parse(localStorage.getItem("finanzen-draft") || "{}"); Object.keys(o).forEach(id => { const el = $(id); if (el && DRAFT_IDS.includes(id)) el.value = o[id]; }); } catch (e) {} }
   document.addEventListener("input", ev => { if (DRAFT_IDS.includes(ev.target.id)) saveForms(); });
   document.addEventListener("click", () => setTimeout(saveForms, 0));
@@ -750,6 +803,53 @@ td button { padding: 4px 8px; font-size: 13px }
   /* v42 (Wunsch des Besitzers): Segment antippen hebt es hervor (leicht herausgezogen, Rest blass), Mitte zeigt Kategorie,
      darunter die Einträge. Nochmal antippen schließt. Auswahl in S.cpick. */
   /* v43: ausgewähltes Kuchenstück in Kostenblöcke unterteilt = Einträge gleichen Namens zusammengefasst, größte zuerst, in Abstufungen der Kategoriefarbe */
+  /* ---------- v45: Sparziele + Dashboard (Premium-Look nach Designvorlage des Besitzers) ---------- */
+  const ICO = {
+    plane: '<path d="M10.5 13.5 4 11l1.5-1.5 7 1 3.8-3.8a1.6 1.6 0 0 1 2.3 2.3L14.8 12.8l1 7L14.3 21l-2.5-6.5L9 17.3V20l-1.5 1-1-3-3-1L4.5 16H7z"/>',
+    home: '<path d="M4 11 12 4l8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-5h4v5"/>',
+    car: '<path d="M5 16V12l2-5h10l2 5v4"/><path d="M4 16h16v3H4z"/><circle cx="8" cy="16.5" r="1"/><circle cx="16" cy="16.5" r="1"/>',
+    shield: '<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/>',
+    gift: '<rect x="4" y="9" width="16" height="11" rx="1"/><path d="M3 9h18M12 9v11M12 9c-2-4-6-4-6-1.5S10 9 12 9c2 0 6 0 6-1.5S14 5 12 9"/>',
+    star: '<path d="m12 4 2.4 5 5.4.6-4 3.7 1.1 5.3L12 16l-4.9 2.6 1.1-5.3-4-3.7 5.4-.6z"/>',
+    up: '<path d="M7 17 17 7M9 7h8v8"/>', down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', eyeoff: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'
+  };
+  const ico = (k, cls) => '<svg class="' + (cls || "ico") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.star) + "</svg>";
+  const goals = () => Object.keys(S.goals).map(id => Object.assign({ id }, S.goals[id]));
+  const money = v => S.hide ? "•••• €" : eur(v);
+  function goalEta(g) {
+    const rest = g.target - g.saved; if (rest <= 0) return "erreicht 🎉".replace(" 🎉", "");
+    if (!(g.rate > 0)) return "";
+    const n = Math.ceil(rest / g.rate); return "voraussichtlich " + mname(im(mi(curMonth()) + n)) + " (" + n + (n === 1 ? " Monat" : " Monate") + ")";
+  }
+  function goalCard(g, full) {
+    const p = Math.max(0, Math.min(1, g.saved / g.target)), eta = goalEta(g);
+    return '<div class="block goal"><div class="gh"><span class="gi">' + ico(g.icon) + '</span><div class="gt"><h3>' + (full ? "" : "Sparziel: ") + esc(g.name) + '</h3><span class="small muted">' + money(g.saved) + " von " + money(g.target) + '</span></div><b class="gp">' + Math.round(p * 100) + ' %</b></div><div class="gbar"><i style="width:' + (p * 100).toFixed(1) + '%"></i></div>' +
+      (eta ? '<span class="small muted">' + (g.saved >= g.target ? "Ziel erreicht" : "Noch " + eur(g.target - g.saved) + " · " + eta) + "</span>" : g.saved < g.target ? '<span class="small muted">Noch ' + eur(g.target - g.saved) + "</span>" : '<span class="small muted">Ziel erreicht</span>') +
+      (full ? '<div class="row gadd"><input id="ga-' + esc(g.id) + '" inputmode="decimal" autocomplete="off" placeholder="Betrag"><button data-act="gadd" data-id="' + esc(g.id) + '">+ Betrag</button><button class="ghost" data-act="gedit" data-id="' + esc(g.id) + '">Ändern</button><button class="ghost danger" data-act="gdel" data-id="' + esc(g.id) + '">Löschen</button></div>' : "") + "</div>";
+  }
+  function renderGoals() {
+    if (!S.ready) return; const G = goals().sort((a, b) => (a.saved / a.target >= 1) - (b.saved / b.target >= 1) || b.target - a.target);
+    $("goallist").innerHTML = G.length ? '<div class="block"><h2>Deine Sparziele</h2><div class="stats"><div><b>' + money(G.reduce((a, g) => a + g.saved, 0)) + '</b><span>gespart</span></div><div><b>' + money(G.reduce((a, g) => a + g.target, 0)) + '</b><span>Ziel gesamt</span></div></div></div>' + G.map(g => goalCard(g, true)).join("") : '<div class="block"><h2>Sparziele</h2><p class="muted">Noch kein Sparziel. Leg unten eins an, zum Beispiel für die nächste Reise.</p></div>';
+  }
+  function resetGoalForm() { F.gedit = null; ["gf-name", "gf-target", "gf-saved", "gf-rate"].forEach(id => { $(id).value = ""; }); $("gf-icon").value = "plane"; $("gf-title").textContent = "Sparziel anlegen"; $("gf-cancel").hidden = true; }
+  /* Gesamtvermögen = Girokonto heute + Depot heute; Veränderung gegenüber dem Monatsende des Vormonats */
+  function dashHtml() {
+    const cm = curMonth(), pm = im(mi(cm) - 1), t = totals(cm);
+    const giro = S.konto ? S.konto.balance : null, dep = depotBal(cm) - (monthItems(cm).filter(x => isSave(x) && x.open).reduce((a, x) => a + x.amount, 0)), tot = (giro || 0) + dep;
+    const prev = S.konto ? kontoBal(pm) + depotBal(pm) : null, ch = prev ? (tot - prev) / Math.abs(prev) * 100 : null;
+    let h = '<div class="hero"><div class="hl"><span>Gesamtvermögen</span><button class="eyeb" data-act="hide" aria-label="' + (S.hide ? "Beträge zeigen" : "Beträge verbergen") + '">' + ico(S.hide ? "eyeoff" : "eye") + "</button></div>";
+    if (giro == null) h += '<b class="hv">' + money(dep) + '</b><button class="hchip" data-act="kedit2">Kontostand eintragen ›</button>';
+    else h += '<b class="hv">' + money(tot) + "</b>" + (ch != null && isFinite(ch) ? '<span class="hchip ' + (ch < 0 ? "dn" : "") + '">' + (ch < 0 ? "↓ " : "↑ ") + (ch >= 0 ? "+" : "−") + Math.abs(ch).toFixed(1).replace(".", ",") + ' %</span> <span class="hsub">diesen Monat</span>' : "");
+    h += '<div class="hsplit"><button data-act="gosub" data-id="ana">Girokonto ' + (giro == null ? "–" : money(giro)) + ' ›</button><button data-act="gosub" data-id="ana">Depot ' + money(dep) + " ›</button></div></div>";
+    h += '<div class="iocards"><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii in">' + ico("down") + '</span><span>Einnahmen</span><b>' + money(t.i) + '</b></button><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii out">' + ico("up") + '</span><span>Ausgaben</span><b>' + money(t.o) + "</b></button></div>";
+    return h;
+  }
+  function dashGoals() {
+    const G = goals().filter(g => g.saved < g.target).sort((a, b) => b.saved / b.target - a.saved / a.target);
+    if (!G.length) return '<button class="block goal gnew" data-act="gosub" data-id="goal"><div class="gh"><span class="gi">' + ico("star") + '</span><div class="gt"><h3>Sparziel anlegen</h3><span class="small muted">Zum Beispiel für die nächste Reise</span></div><b class="gp">›</b></div></button>';
+    return G.slice(0, 2).map(g => '<button class="block goal gbtn" data-act="gosub" data-id="goal">' + goalCard(g, false).replace(/^<div class="block goal">/, "").replace(/<\/div>$/, "") + "</button>").join("");
+  }
   function pickItems(c, ty) {
     const its = []; perMonths().forEach(m => monthItems(m).forEach(i => { if (i.type === ty && i.cat === c && !(ty === "out" && isSave(i) && c !== "sparen")) its.push(Object.assign({ m }, i)); }));
     return its;
@@ -790,9 +890,9 @@ td button { padding: 4px 8px; font-size: 13px }
   function renderSum() {
     const el = $("tab-sum"); if (!S.ready) return;
     if (!recs().length && !txs().length && !loans().length) {
-      el.innerHTML = '<div class="block"><h2>Noch keine Einträge</h2><p class="muted">Am schnellsten geht es mit deinen festen Posten: Gehalt, Miete, Strom, Handy, Versicherungen, Abos. Trag sie einmal unter „Fixkosten“ und „Abos“ ein, dann rechnet die App jeden Monat automatisch mit. Einzelne Ausgaben kommen unter „Transaktionen“ dazu.</p>' +
+      el.innerHTML = '<div class="block"><h2>Noch keine Einträge</h2><p class="muted">Am schnellsten geht es mit deinen festen Posten: Gehalt, Miete, Strom, Handy, Versicherungen, Abos. Trag sie einmal unter „Verträge“ ein, dann rechnet die App jeden Monat automatisch mit. Einzelne Ausgaben kommen unter „Umsätze“ dazu.</p>' +
         '<div class="row"><button class="primary" data-act="gosub" data-id="rec">Feste Posten eintragen</button><button data-act="exload">Erst mal mit Beispieldaten ansehen</button></div><p class="small muted">Beispieldaten sind klar markiert und lassen sich mit einem Klick wieder entfernen.</p></div>';
-      return;
+      $("tab-ana").innerHTML = el.innerHTML; return;
     }
     const y = S.year, cm = curMonth();
     // Saldo pro Monat: Rückblick (echte Buchungen) und Zukunft (geplant), waagerecht wischbar
@@ -819,7 +919,8 @@ td button { padding: 4px 8px; font-size: 13px }
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
       '<p class="small muted">Kommende Monate: nur feste Posten und Kreditraten.</p></div>';
-    // Kategorien
+    // Kategorien (v45: Reihenfolge Dashboard → Kategorien → Sparziel → Kontostand/Saldo → Geldfluss)
+    const hTop = h; h = "";
     const ty = S.cty, cs = catSums(perMonths(), ty), rows = cs.rows, tot = cs.tot;
     h += '<div class="block"><h2>Kategorien</h2><div class="ctl"><div class="seg" role="group" aria-label="Art"><button data-act="cty" data-id="out" aria-pressed="' + (ty === "out") + '">Ausgaben</button><button data-act="cty" data-id="in" aria-pressed="' + (ty === "in") + '">Einnahmen</button></div>' +
       '<div class="seg" role="group" aria-label="Einheit"><button data-act="cunit" data-id="eur" aria-pressed="' + (S.cunit === "eur") + '">€</button><button data-act="cunit" data-id="pct" aria-pressed="' + (S.cunit === "pct") + '">%</button></div></div>' +
@@ -828,10 +929,12 @@ td button { padding: 4px 8px; font-size: 13px }
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
     else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" + pickHtml(rows, ty) +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
-    h += "</div>" + sankeyBlock();
-    if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
+    h += "</div>"; const hCat = h;
+    /* v45: Übersicht = Dashboard; Kontostand, Saldo und Geldfluss wandern in den Reiter „Analyse“ */
+    h = dashHtml() + hCat.replace("<h2>Kategorien</h2>", "<h2>Nach Kategorien</h2>") + dashGoals();
+    const ex = hasExamples() ? '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>' : "";
     const old = $("sscroll"), keep = old && S.sbMoved ? old.scrollLeft : null;
-    el.innerHTML = h;
+    el.innerHTML = h + ex; $("tab-ana").innerHTML = hTop + sankeyBlock() + ex;
     if (keep != null) $("sscroll").scrollLeft = keep; else posBars();
     kontoBind();
     let raf = 0;
@@ -1338,17 +1441,20 @@ td button { padding: 4px 8px; font-size: 13px }
   function clearExamples() { recs().filter(r => r.example).forEach(r => put(r.id, null)); txs().filter(t => t.example).forEach(t => put(t.id, null)); loans().filter(l => l.example).forEach(l => put(l.id, null)); renderAll(); }
 
   /* ---------- Rendern & Events ---------- */
-  function renderAll() { backupWarn(); renderSum(); renderBud(); renderRec(); renderTx(); renderLoan(); refreshSheet(); }
+  function renderAll() { backupWarn(); renderGoals(); renderSum(); renderBud(); renderRec(); renderTx(); renderLoan(); refreshSheet(); }
   function showTab(t) {
     if (t === "rec" || t === "lim" || t === "bud") t = "fix";
+    if (t === "vtr") t = S.vlast || "fix";
     if (!TABS.includes(t)) t = "sum";
+    const vt = t === "fix" || t === "abo" || t === "loan"; if (vt) S.vlast = t;
     const ch = (t === "fix" || t === "abo") && S.rmode !== t; S.tab = t; if (t === "fix" || t === "abo") S.rmode = t;
-    $("tab-sum").hidden = t !== "sum"; $("tab-tx").hidden = t !== "tx"; $("tab-rec").hidden = !(t === "fix" || t === "abo"); $("tab-loan").hidden = t !== "loan";
+    $("tab-sum").hidden = t !== "sum"; $("tab-tx").hidden = t !== "tx"; $("tab-rec").hidden = !(t === "fix" || t === "abo"); $("tab-loan").hidden = t !== "loan"; $("tab-goal").hidden = t !== "goal"; $("tab-ana").hidden = t !== "ana";
+    $("vseg").hidden = !vt; $("vseg").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tab === t)));
     if (ch) { if (!F.redit) recModeForm(); renderRec(); }
-    document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t || (vt && b.dataset.tab === "vtr"))));
     try { localStorage.setItem("finanzen-tab", t); } catch (e) {}
     window.scrollTo(0, 0);
-    if (t === "sum" && !S.sbMoved) posBars();
+    if (t === "ana" && !S.sbMoved) posBars();
   }
   function arm(btn, txt) {
     if (btn.dataset.armed) return true;
@@ -1376,6 +1482,18 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mset") { S.month = id; S.year = id.slice(0, 4); renderSum(); renderTx(); renderBud(); }
     else if (a === "yprev" || a === "ynext") { S.year = String(+S.year + (a === "yprev" ? -1 : 1)); S.month = S.year + S.month.slice(4); renderSum(); renderTx(); renderBud(); }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
+    else if (a === "hide") { S.hide = !S.hide; try { localStorage.setItem("finanzen-hide", S.hide ? "1" : ""); } catch (e) {} renderSum(); renderGoals(); }
+    else if (a === "kedit2") { S.kEdit = true; showTab("ana"); renderSum(); const el = $("konto-in"); if (el) { el.scrollIntoView({ block: "center" }); el.focus(); } }
+    else if (a === "gsave") {
+      const name = $("gf-name").value.trim(), target = num($("gf-target").value), saved = num($("gf-saved").value) || 0, rate = num($("gf-rate").value);
+      if (!name || !(target > 0)) { $("gf-msg").textContent = "Bitte Name und Zielbetrag eintragen."; return; }
+      const gid = F.gedit || rid("g"); put(gid, { kind: "goal", name, target: Math.round(target * 100) / 100, saved: Math.max(0, Math.round(saved * 100) / 100), rate: rate > 0 ? Math.round(rate * 100) / 100 : null, icon: $("gf-icon").value });
+      $("gf-msg").textContent = "„" + name + "“ gespeichert."; resetGoalForm(); saveForms(); renderGoals(); renderSum();
+    }
+    else if (a === "gcancel") { resetGoalForm(); $("gf-msg").textContent = ""; }
+    else if (a === "gedit") { const g = S.goals[id]; if (!g) return; F.gedit = id; const dc = v => v == null ? "" : String(v).replace(".", ","); $("gf-name").value = g.name; $("gf-target").value = dc(g.target); $("gf-saved").value = dc(g.saved); $("gf-rate").value = dc(g.rate); $("gf-icon").value = g.icon || "star"; $("gf-title").textContent = "„" + g.name + "“ ändern"; $("gf-cancel").hidden = false; $("gf-title").scrollIntoView({ block: "start", behavior: "smooth" }); }
+    else if (a === "gdel") { if (arm(b, "Sicher?")) { put(id, null); if (F.gedit === id) resetGoalForm(); renderGoals(); renderSum(); } }
+    else if (a === "gadd") { const g = S.goals[id], el = $("ga-" + id), v = el ? num(el.value) : null; if (!g || v == null || v === 0) return; put(id, Object.assign({}, g, { saved: Math.max(0, Math.round((g.saved + v) * 100) / 100) })); haptic(); renderGoals(); renderSum(); }
     else if (a === "cpick") { S.cpick = id && S.cpick !== id ? id : null; haptic(); renderSum(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
@@ -1535,7 +1653,7 @@ td button { padding: 4px 8px; font-size: 13px }
   const INFO_OPEN = new Set();
   function infoize(root) {
     root.querySelectorAll('p.small.muted:not([data-ip]), p.muted:not([data-ip]), .block > span.small.muted:not([id]):not([data-ip])').forEach(p => {
-      p.dataset.ip = "1"; const t = p.textContent.trim(); if (t.length < 45 || p.closest(".note, .sheet, .ov, #sheetov")) return;
+      p.dataset.ip = "1"; const t = p.textContent.trim(); if (t.length < 45 || p.closest(".note, .sheet, .ov, #sheetov, .goal")) return;
       const key = t.slice(0, 40), blk = p.closest(".block"), head = blk && blk.querySelector(":scope > h2, :scope > .grphead > h2, :scope > h3, :scope > .grphead > h3");
       p.classList.add("infotx"); p.dataset.ik = key; p.hidden = !INFO_OPEN.has(key);
       let btn = head && head.querySelector(".ib");
@@ -1591,6 +1709,7 @@ td button { padding: 4px 8px; font-size: 13px }
   });
   document.addEventListener("touchcancel", () => { if (SW && SW.el) { SW.el.style.transform = ""; SW.el.style.opacity = ""; } SW = null; });
 
+  try { S.hide = localStorage.getItem("finanzen-hide") === "1"; } catch (e) {}
   restoreForms();
   try { const st = localStorage.getItem("finanzen-tab"); if (st) showTab(st); } catch (e) {}
   init();
