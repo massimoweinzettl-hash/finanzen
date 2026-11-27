@@ -194,6 +194,9 @@ td button { padding: 4px 8px; font-size: 13px }
 .sbars.io { border-bottom: 1px solid var(--muted) } .sbars.io .sb { padding-top: 0 }
 .sb i.bi, .sb i.bo { top: auto; bottom: 0; width: 40%; border-radius: 3px 3px 0 0 } .sb i.bi { left: 7%; right: auto; background: var(--good) } .sb i.bo { right: 7%; left: auto; background: var(--bad) }
 .sbars.io .sbv { top: auto; width: 54%; font-size: 9px; letter-spacing: -.04em } .sbars.io .sbv.vi { left: -4%; right: auto } .sbars.io .sbv.vo { right: -4%; left: auto }
+.ib { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; min-height: 0; padding: 0; margin-left: 8px; border-radius: 50%; border: 1.5px solid var(--muted); background: none; color: var(--muted); font: italic 700 12px/1 Georgia, serif; vertical-align: 2px; cursor: pointer; flex: none }
+.ib[aria-expanded="true"] { border-color: var(--accent); color: var(--accent) } p.kweg { margin-top: 4px }
+.grphead.sect { padding: 6px 2px 0; align-items: baseline } .grphead.sect b { font: 600 16px var(--display) }
 .kwrap { margin-top: 10px } .kchart.kchart { width: auto; display: block } .kpt circle { fill: var(--accent) } .kpt text { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kpt.now text { fill: var(--ink); font-weight: 600 } .kpt.sel circle { r: 4.5; stroke: var(--surface); stroke-width: 2 } .kpt.sel text { fill: var(--ink); font-weight: 700; font-size: 10.5px } #kscroll { scroll-snap-type: none } .kchart { width: 100%; height: auto; display: block } .kchart .kz { stroke: var(--muted); stroke-width: 1; opacity: .5 } .kchart .ka { fill: var(--accent); opacity: .12 } .kchart .kl { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round } .kchart .kf { stroke-dasharray: 4 4; opacity: .7 } .kchart .kd { fill: var(--accent); stroke: var(--surface); stroke-width: 2 } .kchart .kt { font-size: 10px; fill: var(--muted) } .kchart .kt.now { fill: var(--ink); font-weight: 600 } .kchart .kv { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kchart .kv.now { fill: var(--ink); font-weight: 600; font-size: 10px } .kchart .kp { fill: var(--accent) }
 .snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; opacity: .6 }
 .spr { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; height: 110px; border-bottom: 1px solid var(--line) }
@@ -384,7 +387,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 35;
+  var APP_VERSION = 37;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -781,7 +784,7 @@ td button { padding: 4px 8px; font-size: 13px }
       '<div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="cper" data-id="m" aria-pressed="' + (S.cper === "m") + '">Monat</button><button data-act="cper" data-id="y" aria-pressed="' + (S.cper === "y") + '">Jahr</button></div>' +
       '<div class="month"><button data-act="' + (S.cper === "y" ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + perLabel() + '</b><button data-act="' + (S.cper === "y" ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div></div>';
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
-    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" +
+    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
     h += "</div>" + sankeyBlock();
     if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
@@ -810,17 +813,17 @@ td button { padding: 4px 8px; font-size: 13px }
     monthItems(K).forEach(x => { if (x.open) { if (x.type === "in") pin += x.amount; else pout += x.amount; } });
     let r = eur(S.konto.balance) + " heute + " + eur(pin) + " kommt noch rein − " + eur(pout) + " geht noch ab";
     if (m !== K) { const d = projBal(m) - projBal(K); r += (d < 0 ? " − " : " + ") + eur(Math.abs(d)) + " aus den Monaten bis " + mname(m).split(" ")[0]; }
-    return r + "<br>";
+    return r + ".";
   }
   function kontoHtml(m) {
     if (S.kEdit) return '<div class="kline ed"><label>Kontostand heute (Girokonto)<span class="krow"><input id="konto-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.konto ? String(S.konto.balance).replace(".", ",") : "") + '"><button class="primary" data-act="ksave">OK</button></span></label></div>';
     if (!S.konto) return '<button class="kline" data-act="kedit"><span>Kontostand eintragen, um zu sehen, was am Monatsende auf dem Konto steht ✎</span></button>';
     const b = projBal(m);
-    return '<button class="kline" data-act="kedit"><span>' + (b == null ? "Kontostand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) : "Kontostand Ende " + mname(m) + ': <b class="' + (b < 0 ? "neg" : "") + '">' + eur(b) + "</b>") + '</span><span class="small muted">' + (b == null ? "" : kontoWeg(m)) + "Stand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + " ✎</span></button>";
+    return '<button class="kline" data-act="kedit"><span>' + (b == null ? "Kontostand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) : "Kontostand Ende " + mname(m) + ': <b class="' + (b < 0 ? "neg" : "") + '">' + eur(b) + "</b>") + '</span><span class="small muted">Stand ' + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + " ✎</span></button>" + (b == null ? "" : '<p class="small muted kweg">So gerechnet: ' + kontoWeg(m) + "</p>");
   }
   function sreadHtml(m) {
     const j = S.sb ? S.sb.sm.indexOf(m) : -1, t = j >= 0 ? S.sb.st[j] : totals(m), none = !t.i && !t.o;
-    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o) + (t.sp ? " · gespart " + eur(t.sp) : "")) + '</span>' + (S.sb && S.sb.lend && S.sb.lend[m] ? '<span class="si lend">Letzte Kreditrate: ' + esc(S.sb.lend[m].join(", ")) + "</span>" : "") + '</div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
+    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : '<span class="pos">+' + eur(t.i) + '</span> · <span class="neg">−' + eur(t.o) + "</span>" + (t.sp ? " · gespart " + eur(t.sp) : "")) + '</span>' + (S.sb && S.sb.lend && S.sb.lend[m] ? '<span class="si lend">Letzte Kreditrate: ' + esc(S.sb.lend[m].join(", ")) + "</span>" : "") + '</div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
   }
   function sbPick() {
     const sc = $("sscroll"); if (!sc || !sc.clientWidth) return;
@@ -941,7 +944,7 @@ td button { padding: 4px 8px; font-size: 13px }
   function itemRow(x, showCat) {
     const when = x.date ? dfmt(x.date) : mshort(x.m || "");
     const sub = [showCat ? catName(x.cat) : null, x.src === "loan" ? "Kreditrate" : x.src === "rec" ? "fester Posten" : x.src === "est" ? "Schnitt der letzten 6 Monate" : x.bank ? "Konto" : null, x.open ? "kommt noch" : x.src !== "tx" && x.m && isPlan(x.m) ? "geplant" : null].filter(Boolean).join(" · ");
-    return "<tr><td class=\"small muted\" style=\"white-space:nowrap\">" + when + "</td><td>" + esc(x.name || catName(x.cat)) + exTag(x) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</td><td class="r ' + (x.type === "in" ? "pos" : "") + '">' + sgn(x.amount, x.type) + "</td></tr>";
+    return "<tr><td class=\"small muted\" style=\"white-space:nowrap\">" + when + "</td><td>" + esc(x.name || catName(x.cat)) + exTag(x) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</td><td class="r ' + (x.type === "in" ? "pos" : "neg") + '">' + sgn(x.amount, x.type) + "</td></tr>";
   }
   function sheetHtml() {
     const sh = S.sheet; if (!sh) return "";
@@ -949,13 +952,13 @@ td button { padding: 4px 8px; font-size: 13px }
       const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x));
       let h = '<div class="shead"><div class="month" style="gap:6px"><button class="hb" data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹' + HSW + '</button><h2>' + mname(m) + '</h2><button class="hb" data-act="shm" data-id="1" aria-label="Nächster Monat">›' + HSW + '</button></div><button data-act="sheetclose">Schließen</button></div>' +
         '<div class="stats">' + (sh.inc ? '<div class="istat ed"><input id="inc-tot" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-m="' + m + '" value="' + (Math.round(t.i * 100) / 100).toString().replace(".", ",") + '"><span>Netto-Einnahmen · leer = automatisch</span></div>'
-          : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + eur(t.sp) + '</b><span>gespart</span></div>' + "</div>";
+          : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b class="neg">' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + eur(t.sp) + '</b><span>gespart</span></div>' + "</div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
       else if (isPlan(m)) h += '<p class="small muted">Geplant: nur feste Posten und Kreditraten.</p>';
       ["out", "save", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen nach Kategorie" : ty === "save" ? "Gespart" : "Ausgaben nach Kategorie") + "</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
-          let x = '<button class="crow" data-act="cexp" data-id="' + esc(key) + '" aria-expanded="' + op + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + ' <span class="chev">' + (op ? "▴" : "▾") + "</span></span></button>";
+          let x = '<button class="crow" data-act="cexp" data-id="' + esc(key) + '" aria-expanded="' + op + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + eur(r.v) + ' <span class="chev">' + (op ? "▴" : "▾") + "</span></span></button>";
           if (op) { const its = items.filter(i => (ty === "save" ? isSave(i) : i.type === ty) && i.cat === r.c).sort((a, b) => (b.date || "") < (a.date || "") ? -1 : (b.date || "") > (a.date || "") ? 1 : b.amount - a.amount);
             x += '<div class="cexp tablewrap"><table><tbody>' + its.map(i => itemRow(i, false)).join("") + "</tbody></table></div>"; }
           return x; }).join("") + "</div></div>";
@@ -969,7 +972,7 @@ td button { padding: 4px 8px; font-size: 13px }
     items.sort((a, b) => { const ka = a.date || a.m + "-99", kb = b.date || b.m + "-99"; return ka < kb ? 1 : ka > kb ? -1 : b.amount - a.amount; });
     let sum = 0; items.forEach(x => { sum += x.amount; });
     let h = '<div class="shead"><h2><span class="dot" style="display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;background:' + ccol(sh.cat) + '"></span>' + esc(catName(sh.cat)) + '</h2><button data-act="sheetclose">Schließen</button></div>' +
-      '<p class="muted">' + esc(sh.lab) + " · " + (sh.ty === "in" ? "Einnahmen" : "Ausgaben") + ": <b class=\"" + (sh.ty === "in" ? "pos" : "") + "\">" + eur(sum) + "</b> · " + items.length + (items.length === 1 ? " Eintrag" : " Einträge") + "</p>";
+      '<p class="muted">' + esc(sh.lab) + " · " + (sh.ty === "in" ? "Einnahmen" : "Ausgaben") + ": <b class=\"" + (sh.ty === "in" ? "pos" : "neg") + "\">" + eur(sum) + "</b> · " + items.length + (items.length === 1 ? " Eintrag" : " Einträge") + "</p>";
     h += items.length ? '<div class="tablewrap"><table><tbody>' + items.map(x => itemRow(x, false)).join("") + "</tbody></table></div>" : '<p class="empty">Nichts in diesem Zeitraum.</p>';
     return h;
   }
@@ -1049,24 +1052,29 @@ td button { padding: 4px 8px; font-size: 13px }
     const m = curMonth(), act = recs().filter(r => active(r, m));
     let fi = 0, fo = 0, lr = 0; act.forEach(r => { if (r.type === "in") fi += perMonth(r); else fo += perMonth(r); });
     loans().forEach(l => { lr += loanPay(l, mi(m), sched(l)); }); fo += lr;
-    $("recstats").innerHTML = '<h2>Feste Posten pro Monat</h2><div class="stats"><div><b class="pos">' + eur(fi) + '</b><span>feste Einnahmen</span></div><div><b>' + eur(fo) + '</b><span>feste Ausgaben</span></div><div><b class="' + (fi - fo < 0 ? "neg" : "pos") + '">' + eur(fi - fo) + '</b><span>frei für alles andere</span></div></div>' +
-      '<div class="stats" style="padding-top:10px;border-top:1px solid var(--line)"><div><b class="pos">' + eur0(yearSum(m.slice(0, 4), "in")) + '</b><span>feste Einnahmen ' + m.slice(0, 4) + ', mit Sonderzahlungen und Erhöhungen</span></div><div><b>' + eur0(yearSum(m.slice(0, 4), "out")) + '</b><span>feste Ausgaben ' + m.slice(0, 4) + '</span></div></div>' +
+    $("recstats").innerHTML = '<h2>Feste Posten pro Monat</h2><div class="stats"><div><b class="pos">' + eur(fi) + '</b><span>feste Einnahmen</span></div><div><b class="neg">' + eur(fo) + '</b><span>feste Ausgaben</span></div><div><b class="' + (fi - fo < 0 ? "neg" : "pos") + '">' + eur(fi - fo) + '</b><span>frei für alles andere</span></div></div>' +
+      '<div class="stats" style="padding-top:10px;border-top:1px solid var(--line)"><div><b class="pos">' + eur0(yearSum(m.slice(0, 4), "in")) + '</b><span>feste Einnahmen ' + m.slice(0, 4) + ', mit Sonderzahlungen und Erhöhungen</span></div><div><b class="neg">' + eur0(yearSum(m.slice(0, 4), "out")) + '</b><span>feste Ausgaben ' + m.slice(0, 4) + '</span></div></div>' +
       (lr ? '<p class="small muted">Darin enthalten: ' + eur(lr) + ' Kreditraten aus dem Tab „Kredite“.</p>' : "") + '<p class="small muted">Jährliche und vierteljährliche Beträge sind hier auf den Monat umgerechnet. In der Übersicht erscheinen sie im Monat, in dem sie wirklich gezahlt werden.</p>' + upcoming(m);
     const keep = $("rf-cat").value; fillCats("rf-cat", F.rtype); if (keep) $("rf-cat").value = keep; if (!$("rf-cat").value) $("rf-cat").selectedIndex = 0;
     if (!$("rf-start").value) $("rf-start").value = m;
     const abo = S.rmode === "abo", all = recs().filter(r => (r.cat === "abo") === abo), groups = {};
     if (abo) { const aa = all.filter(r => active(r, m)), pm = aa.reduce((a, r) => a + perMonth(r), 0);
-      $("recstats").innerHTML = '<h2>Abos &amp; Mitgliedschaften</h2><div class="stats"><div><b>' + eur(pm) + '</b><span>pro Monat</span></div><div><b>' + eur0(pm * 12) + '</b><span>pro Jahr</span></div><div><b>' + aa.length + '</b><span>laufende Abos</span></div></div><p class="small muted">Jährliche Abos sind auf den Monat umgerechnet. Alle anderen festen Posten stehen unter „Fixkosten“.</p>'; }
-    all.forEach(r => { (groups[r.cat] = groups[r.cat] || []).push(r); });
-    const order = cats().map(c => c.id).filter(id => groups[id]).concat(Object.keys(groups).filter(id => !cats().some(c => c.id === id)));
+      $("recstats").innerHTML = '<h2>Abos &amp; Mitgliedschaften</h2><div class="stats"><div><b class="neg">' + eur(pm) + '</b><span>pro Monat</span></div><div><b class="neg">' + eur0(pm * 12) + '</b><span>pro Jahr</span></div><div><b>' + aa.length + '</b><span>laufende Abos</span></div></div><p class="small muted">Jährliche Abos sind auf den Monat umgerechnet. Alle anderen festen Posten stehen unter „Fixkosten“.</p>'; }
+    all.forEach(r => { const g = r.type + "|" + r.cat; (groups[g] = groups[g] || []).push(r); });
+    /* v36 (Wunsch des Besitzers): Einnahmen und Ausgaben getrennt, je mit Überschrift und Summe pro Monat */
+    const ci = id => { const j = cats().findIndex(c => c.id === id); return j < 0 ? 999 : j; };
+    const order = Object.keys(groups).sort((a, b) => (a[0] === "i" ? 0 : 1) - (b[0] === "i" ? 0 : 1) || ci(a.split("|")[1]) - ci(b.split("|")[1]));
+    const tsum = ty => all.filter(r => r.type === ty && active(r, m)).reduce((a, r) => a + perMonth(r), 0);
     if (!all.length) { $("reclist").innerHTML = '<p class="empty">' + (abo ? "Noch keine Abos. Trag oben z. B. Streaming oder Fitnessstudio ein." : "Noch keine festen Posten. Trag oben z. B. dein Gehalt und deine Miete ein.") + "</p>"; return; }
-    $("reclist").innerHTML = order.map(cid => {
-      const list = groups[cid].sort((a, b) => perMonth(b) - perMonth(a)), sum = list.filter(r => active(r, m)).reduce((a, r) => a + perMonth(r) * (r.type === "in" ? 1 : 1), 0);
-      return '<div class="block"><div class="grphead"><h3>' + esc(catName(cid)) + '</h3><span class="small muted">' + eur(sum) + " / Monat</span></div><div class=\"tablewrap\"><table><tbody>" + list.map(r => {
+    let lastTy = null;
+    $("reclist").innerHTML = order.map(gk => {
+      const ty = gk.split("|")[0], cid = gk.split("|")[1], list = groups[gk].sort((a, b) => perMonth(b) - perMonth(a)), sum = list.filter(r => active(r, m)).reduce((a, r) => a + perMonth(r) * (r.type === "in" ? 1 : 1), 0);
+      const sec = !abo && ty !== lastTy ? '<div class="grphead sect"><h2>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + '</h2><b class="' + (ty === "in" ? "pos" : "neg") + '">' + (ty === "in" ? "+" : "−") + eur(tsum(ty)) + " / Monat</b></div>" : ""; lastTy = ty;
+      return sec + '<div class="block"><div class="grphead"><h3>' + esc(catName(cid)) + '</h3><span class="small muted">' + eur(sum) + " / Monat</span></div><div class=\"tablewrap\"><table><tbody>" + list.map(r => {
         const off = !active(r, m), sub = [eur(amountAt(r, m)) + " " + EVERY[r.every || 1] + ((r.every || 1) > 1 ? " (" + dueMonths(r).map(x => MN[x].slice(0, 3)).join(", ") + ")" : "")];
         const nx = (r.changes || []).filter(c => mi(c.from) > mi(m)); if (nx.length) sub.push("ab " + mname(nx[0].from) + ": " + eur(nx[0].amount) + (nx.length > 1 ? " (+" + (nx.length - 1) + " weitere)" : ""));
         if (r.end) sub.push("bis " + mname(r.end)); if (mi(r.start) > mi(m)) sub.push("ab " + mname(r.start)); if (r.note) sub.push(r.note);
-        return "<tr" + (off ? ' style="opacity:.55"' : "") + "><td>" + esc(r.name) + exTag(r) + '<span class="sub">' + esc(sub.join(" · ")) + '</span></td><td class="r ' + (r.type === "in" ? "pos" : "") + '">' + (r.type === "in" ? "+" : "−") + eur(perMonth(r)) + '<span class="sub">pro Monat</span></td><td class="r act"><button data-act="redit" data-id="' + esc(r.id) + '">Ändern</button><button class="danger" data-act="rdel" data-id="' + esc(r.id) + '">Löschen</button></td></tr>';
+        return "<tr" + (off ? ' style="opacity:.55"' : "") + "><td>" + esc(r.name) + exTag(r) + '<span class="sub">' + esc(sub.join(" · ")) + '</span></td><td class="r ' + (r.type === "in" ? "pos" : "neg") + '">' + (r.type === "in" ? "+" : "−") + eur(perMonth(r)) + '<span class="sub">pro Monat</span></td><td class="r act"><button data-act="redit" data-id="' + esc(r.id) + '">Ändern</button><button class="danger" data-act="rdel" data-id="' + esc(r.id) + '">Löschen</button></td></tr>';
       }).join("") + "</tbody></table></div></div>";
     }).join("");
   }
@@ -1186,7 +1194,7 @@ td button { padding: 4px 8px; font-size: 13px }
     let h = '<div class="block"><div class="month"><button data-act="mprev" aria-label="Vorheriger Monat">‹</button><b>' + mname(m) + '</b><button data-act="mnext" aria-label="Nächster Monat">›</button></div>';
     if (!list.length) h += '<p class="empty">Keine einzelnen Buchungen in diesem Monat.</p>';
     else h += '<p class="small muted">' + list.length + " Buchungen · " + eur(so) + " ausgegeben" + (si ? " · " + eur(si) + " eingenommen" : "") + '</p><div class="tablewrap"><table><tbody>' + list.map(t =>
-      "<tr><td>" + dfmt(t.date) + "</td><td>" + esc(t.name || catName(t.cat)) + exTag(t) + '<span class="sub">' + esc(catName(t.cat)) + (t.src === "bank" ? " · Konto" : "") + '</span></td><td class="r ' + (t.type === "in" ? "pos" : "") + '">' + (t.type === "in" ? "+" : "−") + eur(t.amount) + '</td><td class="r act"><button data-act="tedit" data-id="' + esc(t.id) + '">Ändern</button><button class="danger" data-act="tdel" data-id="' + esc(t.id) + '">Löschen</button></td></tr>').join("") + "</tbody></table></div>";
+      "<tr><td>" + dfmt(t.date) + "</td><td>" + esc(t.name || catName(t.cat)) + exTag(t) + '<span class="sub">' + esc(catName(t.cat)) + (t.src === "bank" ? " · Konto" : "") + '</span></td><td class="r ' + (t.type === "in" ? "pos" : "neg") + '">' + (t.type === "in" ? "+" : "−") + eur(t.amount) + '</td><td class="r act"><button data-act="tedit" data-id="' + esc(t.id) + '">Ändern</button><button class="danger" data-act="tdel" data-id="' + esc(t.id) + '">Löschen</button></td></tr>').join("") + "</tbody></table></div>";
     $("txlist").innerHTML = h + "</div>";
   }
   function resetTxForm() { F.tedit = null; $("tf-name").value = ""; $("tf-amount").value = ""; $("tf-title").textContent = "Einzelne Buchung eintragen"; $("tf-cancel").hidden = true; }
@@ -1207,7 +1215,7 @@ td button { padding: 4px 8px; font-size: 13px }
       tb += bal; tr += pay; ti += ri; if (sc.never) never = true; else if (le != null && (last == null || le > last)) last = le;
       let h = '<div class="block"><div class="grphead"><h3>' + esc(l.name) + exTag(l) + '</h3><span class="small muted">' + esc(l.lender || "") + "</span></div>";
       if (sc.never) return h + '<p class="note">Die Rate von ' + eur(l.rate) + ' deckt nicht einmal die monatlichen Zinsen von ' + eur(l.balance * l.interest / 1200) + '. Bitte Restschuld, Rate und Zinssatz prüfen.</p>' + loanBtns(l) + "</div>";
-      h += '<div class="stats"><div><b>' + eur(bal) + '</b><span>Restschuld jetzt</span></div><div><b>' + eur(l.rate) + '</b><span>Rate pro Monat</span></div><div><b>' + String(l.interest || 0).replace(".", ",") + ' %</b><span>Zinssatz p. a.</span></div><div><b>' + (le != null ? mshort(im(le)) + " " + im(le).slice(0, 4) : "–") + '</b><span>letzte Rate</span></div></div>';
+      h += '<div class="stats"><div><b class="neg">−' + eur(bal) + '</b><span>Restschuld jetzt</span></div><div><b class="neg">−' + eur(l.rate) + '</b><span>Rate pro Monat</span></div><div><b>' + String(l.interest || 0).replace(".", ",") + ' %</b><span>Zinssatz p. a.</span></div><div><b>' + (le != null ? mshort(im(le)) + " " + im(le).slice(0, 4) : "–") + '</b><span>letzte Rate</span></div></div>';
       if (l.original > 0) { const pct = Math.max(0, Math.min(100, (1 - bal / l.original) * 100)); h += '<div class="prog" role="img" aria-label="' + Math.round(pct) + ' Prozent getilgt"><i style="width:' + pct.toFixed(1) + '%"></i></div><p class="small muted">' + Math.round(pct) + " % von " + eur0(l.original) + " getilgt</p>"; }
       h += "<p>Noch <b>" + rest.length + " Raten</b>, davon <b>" + eur(ri) + "</b> Zinsen.</p>";
       if (sc.balloon) h += '<p class="small muted">Davon Schlussrate ' + eur(l.balloon) + " im " + mname(l.end) + ". Restschuld aus den offenen Zahlungen und dem Effektivzins berechnet.</p>";
@@ -1220,7 +1228,7 @@ td button { padding: 4px 8px; font-size: 13px }
       if (S.lpay === l.id) return h + '<div class="lpay"><p class="small muted">Ab dem Monat nach der Ablösung fallen keine Raten mehr an. Frühere Monate bleiben, wie sie sind.</p><div class="row"><label>Abgelöst im<input type="month" id="lp-m" value="' + curMonth() + '"></label><label>Ablösebetrag (optional)<input id="lp-a" inputmode="decimal" autocomplete="off" placeholder="' + eur(bal) + '"></label></div><div class="row"><button class="primary" data-act="lpaidsave" data-id="' + esc(l.id) + '">Ablösung speichern</button><button data-act="lpaid" data-id="">Abbrechen</button></div></div></div>';
       return h + loanBtns(l) + "</div>";
     }).join("");
-    $("loanstats").innerHTML = '<h2>Deine Kredite</h2><div class="stats"><div><b>' + eur(tb) + '</b><span>Restschuld gesamt</span></div><div><b>' + eur(tr) + '</b><span>Raten diesen Monat</span></div><div><b>' + eur(ti) + '</b><span>Zinsen bis zum Ende</span></div><div><b>' + (never ? "–" : last != null ? mshort(im(last)) + " " + im(last).slice(0, 4) : "–") + '</b><span>schuldenfrei ab</span></div></div>' +
+    $("loanstats").innerHTML = '<h2>Deine Kredite</h2><div class="stats"><div><b class="neg">−' + eur(tb) + '</b><span>Restschuld gesamt</span></div><div><b class="neg">−' + eur(tr) + '</b><span>Raten diesen Monat</span></div><div><b class="neg">−' + eur(ti) + '</b><span>Zinsen bis zum Ende</span></div><div><b>' + (never ? "–" : last != null ? mshort(im(last)) + " " + im(last).slice(0, 4) : "–") + '</b><span>schuldenfrei ab</span></div></div>' +
       '<p class="small muted">Berechnet mit gleichbleibender Rate und monatlicher Verzinsung. Der Kontoauszug deiner Bank kann um ein paar Euro abweichen.</p>';
     $("loanlist").innerHTML = cards;
   }
@@ -1438,6 +1446,27 @@ td button { padding: 4px 8px; font-size: 13px }
   const HAPACTS = { rsave: 1, tsave: 1, lsave: 1, bsave: 1, bankgo: 1 };
   document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("button[data-act]"); if (b && HAPACTS[b.dataset.act]) haptic(); }, true);
   /* Wischen zwischen den Reitern (wie im Trainingslog) */
+  /* v36 (Wunsch des Besitzers): lange Erklärtexte stecken hinter einem ⓘ. Gilt automatisch für alle p.small.muted / p.muted
+     und Hinweis-Spans ohne id ab 45 Zeichen. Das ⓘ sitzt in der Überschrift des Kastens (sonst an Stelle des Texts);
+     Antippen klappt alle Texte des Kastens auf. Offene Texte bleiben über Neuzeichnen hinweg offen (INFO_OPEN). */
+  const INFO_OPEN = new Set();
+  function infoize(root) {
+    root.querySelectorAll('p.small.muted:not([data-ip]), p.muted:not([data-ip]), .block > span.small.muted:not([id]):not([data-ip])').forEach(p => {
+      p.dataset.ip = "1"; const t = p.textContent.trim(); if (t.length < 45 || p.closest(".note, .sheet, .ov, #sheetov")) return;
+      const key = t.slice(0, 40), blk = p.closest(".block"), head = blk && blk.querySelector(":scope > h2, :scope > .grphead > h2, :scope > h3, :scope > .grphead > h3");
+      p.classList.add("infotx"); p.dataset.ik = key; p.hidden = !INFO_OPEN.has(key);
+      let btn = head && head.querySelector(".ib");
+      if (!btn) { btn = document.createElement("button"); btn.type = "button"; btn.className = "ib"; btn.setAttribute("aria-label", "Erklärung anzeigen"); btn.textContent = "i"; if (head) head.appendChild(btn); else p.before(btn); }
+      btn.setAttribute("aria-expanded", String(!p.hidden));
+    });
+  }
+  document.addEventListener("click", ev => {
+    const b = ev.target.closest && ev.target.closest(".ib"); if (!b) return; ev.preventDefault(); ev.stopPropagation();
+    const blk = b.closest(".block"), list = blk && b.closest("h2, h3") ? [...blk.querySelectorAll(".infotx")] : [b.nextElementSibling].filter(x => x && x.classList.contains("infotx"));
+    const open = list.some(x => x.hidden); list.forEach(x => { x.hidden = !open; if (open) INFO_OPEN.add(x.dataset.ik); else INFO_OPEN.delete(x.dataset.ik); }); b.setAttribute("aria-expanded", String(open));
+  }, true);
+  new MutationObserver(() => infoize(document.body)).observe(document.body, { childList: true, subtree: true });
+  infoize(document.body);
   let SW = null;
   const swBlocked = el => {
     if (document.querySelector(".overlay")) return true;
