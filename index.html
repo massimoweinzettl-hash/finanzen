@@ -388,7 +388,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 42;
+  var APP_VERSION = 43;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -743,11 +743,21 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   /* v42 (Wunsch des Besitzers): Segment antippen hebt es hervor (leicht herausgezogen, Rest blass), Mitte zeigt Kategorie,
      darunter die Einträge. Nochmal antippen schließt. Auswahl in S.cpick. */
+  /* v43: ausgewähltes Kuchenstück in Kostenblöcke unterteilt = Einträge gleichen Namens zusammengefasst, größte zuerst, in Abstufungen der Kategoriefarbe */
+  function pickItems(c, ty) {
+    const its = []; perMonths().forEach(m => monthItems(m).forEach(i => { if (i.type === ty && i.cat === c && !(ty === "out" && isSave(i) && c !== "sparen")) its.push(Object.assign({ m }, i)); }));
+    return its;
+  }
+  function pickGroups(c, ty) {
+    const g = {}; pickItems(c, ty).forEach(i => { const n = (i.name || catName(c)).trim(), k = n.toLowerCase(); (g[k] = g[k] || { name: n, v: 0, n: 0 }); g[k].v += i.amount; g[k].n++; });
+    const list = Object.values(g).sort((a, b) => b.v - a.v), N = list.length;
+    list.forEach((x, j) => { x.op = N > 1 ? 1 - j * Math.min(0.13, 0.65 / (N - 1)) : 1; });
+    return list;
+  }
   function pickHtml(rows, ty) {
     const r = rows.find(x => x.c === S.cpick); if (!r) return "";
-    const its = []; perMonths().forEach(m => monthItems(m).forEach(i => { if (i.type === ty && i.cat === r.c && !(ty === "out" && isSave(i) && r.c !== "sparen")) its.push(Object.assign({ m }, i)); }));
-    its.sort((a, b) => b.amount - a.amount);
-    return '<div class="cpick" style="border-left:3px solid ' + ccol(r.c) + '"><div class="grphead"><h3>' + esc(catName(r.c)) + '</h3><b class="' + (ty === "in" ? "pos" : "neg") + '">' + eur(r.v) + '</b></div><div class="tablewrap"><table><tbody>' + its.slice(0, 12).map(i => itemRow(i, false)).join("") + "</tbody></table></div>" +
+    const its = pickItems(r.c, ty), gs = pickGroups(r.c, ty), col = ccol(r.c);
+    return '<div class="cpick" style="border-left:3px solid ' + ccol(r.c) + '"><div class="grphead"><h3>' + esc(catName(r.c)) + '</h3><b class="' + (ty === "in" ? "pos" : "neg") + '">' + eur(r.v) + '</b></div><div class="tablewrap"><table><tbody>' + gs.slice(0, 12).map(x => '<tr><td><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + col + ";opacity:" + x.op.toFixed(2) + '"></span>' + esc(x.name) + (x.n > 1 ? '<span class="sub">' + x.n + " Buchungen</span>" : "") + '</td><td class="r ' + (ty === "in" ? "pos" : "neg") + '">' + (ty === "in" ? "+" : "−") + eur(x.v) + '<span class="sub">' + pct(x.v, r.v) + "</span></td></tr>").join("") + "</tbody></table></div>" +
       '<div class="row"><button class="ghost" data-act="copen" data-id="' + esc(r.c) + '">' + (its.length > 12 ? "Alle " + its.length + " Einträge ›" : "Details ›") + '</button><button class="ghost" data-act="cpick" data-id="">Schließen</button></div></div>';
   }
   function donut(rows, tot, ty) {
@@ -757,6 +767,10 @@ td button { padding: 4px 8px; font-size: 13px }
     rows.forEach(r => {
       const len = r.v / tot * C, vis = Math.max(0.5, len - gap);
       const sel = r.c === pk, an = (off + len / 2) / C * 2 * Math.PI, tr = sel ? ' transform="translate(' + (Math.cos(an) * 7).toFixed(2) + " " + (Math.sin(an) * 7).toFixed(2) + ')"' : "";
+      if (sel) { let o2 = off; const gs = pickGroups(r.c, ty), sum = gs.reduce((a, x) => a + x.v, 0) || 1;
+        gs.forEach(x => { const l2 = x.v / sum * len, v2 = Math.max(0.4, l2 - (gs.length > 1 ? 1.2 : 0) - (o2 + l2 >= off + len - 0.01 ? gap : 0));
+          h += '<circle class="s on"' + tr + ' data-act="cpick" data-id="' + esc(r.c) + '" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + ccol(r.c) + '" stroke-opacity="' + x.op.toFixed(2) + '" stroke-width="' + (W + 6) + '" stroke-dasharray="' + v2.toFixed(2) + " " + (C - v2).toFixed(2) + '" stroke-dashoffset="' + (-o2).toFixed(2) + '"><title>' + esc(x.name) + ": " + eur(x.v) + "</title></circle>"; o2 += l2; });
+        off += len; return; }
       h += '<circle class="s' + (sel ? " on" : pk ? " dim" : "") + '"' + tr + ' data-act="cpick" data-id="' + esc(r.c) + '" tabindex="0" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + ccol(r.c) + '" stroke-width="' + (sel ? W + 6 : W) + '" stroke-dasharray="' + vis.toFixed(2) + " " + (C - vis).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(catName(r.c)) + ": " + eur(r.v) + " (" + pct(r.v, tot) + ")</title></circle>";
       off += len;
     });
