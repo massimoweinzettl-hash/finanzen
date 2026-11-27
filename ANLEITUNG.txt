@@ -28,7 +28,8 @@ WO FINDE ICH WAS?
 - Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
   Prämie usw. mit Rhythmus; "Betrag ändert sich später" für
   Gehaltserhöhungen (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
-- Buchungen: einzelne Ausgaben und Einnahmen.
+- Buchungen: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
+  den CSV-Export der Bank (nur auf dem Gerät, doppelte werden erkannt).
 - Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
   Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
 - Zahnrad: Sicherung speichern und einspielen, Version.

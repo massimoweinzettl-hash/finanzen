@@ -258,7 +258,7 @@ td button { padding: 4px 8px; font-size: 13px }
     { id: "gehalt", name: "Gehalt", type: "in" }, { id: "neben", name: "Nebeneinkommen", type: "in" }, { id: "in_sonst", name: "Sonstige Einnahmen", type: "in" },
     { id: "fix", name: "Fixkosten (Miete, Strom, Internet)", type: "out" }, { id: "vers", name: "Versicherungen", type: "out" }, { id: "abo", name: "Abos & Mitgliedschaften", type: "out" },
     { id: "kredit", name: "Kredite & Raten", type: "out" }, { id: "sparen", name: "Sparen & Anlegen", type: "out" }, { id: "essen", name: "Lebensmittel & Haushalt", type: "out" },
-    { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
+    { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "shop", name: "Einkäufe & Shopping", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
   ];
 
   const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], tab: "sum", month: curMonth(), extra: 0 };
@@ -508,7 +508,22 @@ td button { padding: 4px 8px; font-size: 13px }
   const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
   function monthItems(m) {
     const out = [];
-    if (bankMonths()[m]) { txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example }); }); return out; }
+    const bank = bankMonths()[m];
+    txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example, bank: t.src === "bank" }); });
+    /* Abgeschlossener Monat mit Kontoauszug: nur echte Buchungen. */
+    if (bank && mi(m) < mi(curMonth())) return out;
+    const plan = [];
+    loans().forEach(l => { const v = loanPay(l, mi(m), sched(l)); if (v > 0) plan.push({ src: "loan", id: l.id, name: l.name, amount: v, type: "out", cat: "kredit", example: l.example }); });
+    recs().forEach(r => { if (dueIn(r, m)) plan.push({ src: "rec", id: r.id, name: r.name, amount: amountAt(r, m), type: r.type, cat: r.cat, every: r.every, example: r.example }); });
+    if (!bank) return out.concat(plan);
+    /* Laufender Monat mit Kontoauszug: fester Posten gilt als schon gebucht, wenn eine Kontobuchung gleicher Art mit
+       fast gleichem Betrag (±5 %, mind. 1 €) da ist; sonst zählt er als „kommt noch“. Jede Buchung deckt nur einen Posten. */
+    const used = {};
+    plan.forEach(p => {
+      const hit = out.find(x => x.bank && !used[x.id] && x.type === p.type && Math.abs(x.amount - p.amount) <= Math.max(1, p.amount * 0.05));
+      if (hit) used[hit.id] = 1; else out.push(Object.assign(p, { open: true }));
+    });
+    return out;
     loans().forEach(l => { const v = loanPay(l, mi(m), sched(l)); if (v > 0) out.push({ src: "loan", id: l.id, name: l.name, amount: v, type: "out", cat: "kredit", example: l.example }); });
     recs().forEach(r => { if (dueIn(r, m)) out.push({ src: "rec", id: r.id, name: r.name, amount: amountAt(r, m), type: r.type, cat: r.cat, every: r.every, example: r.example }); });
     txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example }); });
@@ -546,8 +561,8 @@ td button { padding: 4px 8px; font-size: 13px }
     // Posten des Monats
     const fixed = items.filter(x => x.src !== "tx").sort((a, b) => (a.type === b.type ? b.amount - a.amount : a.type === "in" ? -1 : 1));
     if (fixed.length) h += '<div class="block"><div class="grphead"><h2>Feste Posten in diesem Monat</h2><span class="small muted">' + fixed.length + ' Posten</span></div><div class="tablewrap"><table><tbody>' + fixed.map(x =>
-      "<tr><td>" + esc(x.name) + exTag(x) + '<span class="sub">' + esc(x.src === "loan" ? "Kreditrate" : catName(x.cat)) + (x.every > 1 ? " · " + EVERY[x.every] : "") + '</span></td><td class="r ' + (x.type === "in" ? "pos" : "") + '">' + (x.type === "in" ? "+" : "−") + eur(x.amount) + "</td></tr>").join("") + "</tbody></table></div></div>";
-    if (bankMonths()[m]) h += '<p class="small muted">Dieser Monat zeigt die Buchungen aus dem Kontoauszug. Feste Posten und Kreditraten zählen hier nicht zusätzlich.</p>';
+      "<tr><td>" + esc(x.name) + exTag(x) + '<span class="sub">' + esc((x.src === "loan" ? "Kreditrate" : catName(x.cat)) + (x.open ? " · kommt noch" : "")) + (x.every > 1 ? " · " + EVERY[x.every] : "") + '</span></td><td class="r ' + (x.type === "in" ? "pos" : "") + '">' + (x.type === "in" ? "+" : "−") + eur(x.amount) + "</td></tr>").join("") + "</tbody></table></div></div>";
+    if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Dieser Monat zeigt nur die echten Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + '</p>';
     if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
     el.innerHTML = h;
   }
@@ -622,7 +637,7 @@ td button { padding: 4px 8px; font-size: 13px }
     [/netflix|spotify|youtube|google|apple\.com|itunes|amazon prime|disney|dazn|claude|anthropic|openai|fitness|mcfit|urban sports|abo/i, "abo"],
     [/rewe|edeka|aldi|lidl|kaufland|netto|penny|norma|dm-drogerie|dm drogerie|rossmann|m(ü|ue)ller|globus|real|supermarkt|b(ä|ae)ckerei/i, "essen"],
     [/aral|shell|esso|jet |total|tankstelle|\btank|bahn\b|db vertrieb|mvg|bvg|hvv|vgn|parken|parkhaus|uber|flixbus|kfz-steuer/i, "mobil"],
-    [/apotheke|arzt|zahnarzt|praxis|klinik/i, "gesund"], [/restaurant|lieferando|bar |cafe|caf(é|e)|kino|ticket|eventim/i, "freizeit"]
+    [/apotheke|arzt|zahnarzt|praxis|klinik/i, "gesund"], [/amazon|amzn|zalando|otto|ebay|mediamarkt|saturn|toom|obi|hornbach|bauhaus|baumarkt|decathlon|intersport|snipes|deichmann|h&m|primark|jack & jones|thalia|flaconi|gymshark|fitmart|woolworth|ikea|paypal/i, "shop"], [/restaurant|lieferando|bar |cafe|caf(é|e)|kino|ticket|eventim/i, "freizeit"]
   ];
   function guessCat(text, type) {
     const r = recs().find(x => x.type === type && x.name && text.toLowerCase().indexOf(x.name.toLowerCase()) >= 0);
@@ -630,13 +645,14 @@ td button { padding: 4px 8px; font-size: 13px }
     for (const [re, cat, only] of RULES) if (re.test(text) && (!only || only === type) && cats().some(c => c.id === cat && c.type === type)) return cat;
     return type === "in" ? "in_sonst" : "out_sonst";
   }
+  function catFrom(v, type) { v = String(v || "").trim().toLowerCase(); if (!v) return null; const c = cats().find(x => x.type === type && (x.id === v || x.name.toLowerCase() === v)); return c ? c.id : null; }
   function parseBank(txt) {
     const rows = csvRows(txt);
     const hi = rows.findIndex(r => r.some(c => /^betrag/i.test(c)) && r.some(c => /buchung|datum/i.test(c)));
     if (hi < 0) return { err: "In der Datei finde ich keine Spalten „Buchungsdatum“ und „Betrag“. Ist das der CSV-Export der Umsätze?" };
     const H = rows[hi].map(c => c.toLowerCase()), col = re => H.findIndex(c => re.test(c));
     const cDate = col(/^buchungs(datum|tag)$/) >= 0 ? col(/^buchungs(datum|tag)$/) : col(/datum/), cAmt = col(/^betrag/), cStat = col(/^status/);
-    const cPay = col(/zahlungspflichtige|auftraggeber/), cRec = col(/zahlungsempf(ä|ae)nger|beg(ü|ue)nstigter|empf(ä|ae)nger/), cPurp = col(/verwendungszweck/);
+    const cCat = col(/^kategorie$/), cPay = col(/zahlungspflichtige|auftraggeber/), cRec = col(/zahlungsempf(ä|ae)nger|beg(ü|ue)nstigter|empf(ä|ae)nger/), cPurp = col(/verwendungszweck/);
     const out = [], seen = {}; let skipped = 0;
     rows.slice(hi + 1).forEach(r => {
       if (r.length < 2) return;
@@ -644,10 +660,12 @@ td button { padding: 4px 8px; font-size: 13px }
       if (!date || amt == null || amt === 0) { if (r.join("").trim()) skipped++; return; }
       if (cStat >= 0 && /vorgemerkt/i.test(r[cStat] || "")) { skipped++; return; }
       const type = amt < 0 ? "out" : "in";
-      const who = (type === "out" ? r[cRec] : r[cPay]) || r[cRec] || r[cPay] || "", purp = cPurp >= 0 ? r[cPurp] || "" : "";
-      const base = date + "|" + amt + "|" + who + "|" + purp; let n = (seen[base] = (seen[base] || 0) + 1);
+      let who = (type === "out" ? r[cRec] : r[cPay]) || r[cRec] || r[cPay] || ""; const purp = cPurp >= 0 ? r[cPurp] || "" : "";
+      const pp = /paypal/i.test(who) && /Ihr Einkauf bei ([^,]+)/i.exec(purp); if (pp && pp[1].trim() && !/paypal/i.test(pp[1])) who = pp[1].trim();
+      /* Schlüssel nur aus Datum und Betrag (+ laufende Nummer): gleiche Buchung aus PDF-Aufbereitung und CSV-Export wird erkannt. */
+      const base = date + "|" + amt; let n = (seen[base] = (seen[base] || 0) + 1);
       const id = "t" + hashStr(base + "|" + n);
-      out.push({ id, doc: { kind: "tx", src: "bank", date, amount: Math.abs(Math.round(amt * 100) / 100), type, name: (who || purp).slice(0, 80), note: purp.slice(0, 140), cat: guessCat(who + " " + purp, type) } });
+      out.push({ id, doc: { kind: "tx", src: "bank", date, amount: Math.abs(Math.round(amt * 100) / 100), type, name: (who || purp).slice(0, 80), note: purp.slice(0, 140), cat: catFrom(cCat >= 0 ? r[cCat] : "", type) || guessCat(who + " " + purp, type) } });
     });
     if (!out.length) return { err: "Ich habe keine gebuchten Umsätze in der Datei gefunden." };
     const fresh = out.filter(x => !S.tx[x.id]);
@@ -661,7 +679,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (b.done) { el.innerHTML = '<p class="small muted">' + esc(b.done) + "</p>"; return; }
     const byCat = {}; b.fresh.forEach(x => { byCat[x.doc.cat] = (byCat[x.doc.cat] || 0) + 1; });
     el.innerHTML = "<p>" + b.all.length + " Umsätze vom " + dfmt(b.from) + b.from.slice(0, 4) + " bis " + dfmt(b.to) + b.to.slice(0, 4) + ": <b>" + b.fresh.length + " neu</b>" + (b.dup ? ", " + b.dup + " schon vorhanden" : "") + (b.skipped ? ", " + b.skipped + " vorgemerkte oder unlesbare übersprungen" : "") + ".</p>" +
-      (b.fresh.length ? '<p class="small muted">Kategorien vorgeschlagen: ' + Object.keys(byCat).sort((x, y) => byCat[y] - byCat[x]).map(c => esc(catName(c)) + " " + byCat[c]).join(", ") + '. Du kannst jede Buchung danach mit „Ändern“ umsortieren.</p><p class="small muted">In Monaten mit Kontoauszug zählen nur die echten Buchungen, feste Posten und Kreditraten dort nicht zusätzlich.</p><div class="row"><button class="primary" data-act="bankgo">' + b.fresh.length + ' Buchungen übernehmen</button><button data-act="bankno">Abbrechen</button></div>' : '<div class="row"><button data-act="bankno">OK</button></div>');
+      (b.fresh.length ? '<p class="small muted">Kategorien vorgeschlagen: ' + Object.keys(byCat).sort((x, y) => byCat[y] - byCat[x]).map(c => esc(catName(c)) + " " + byCat[c]).join(", ") + '. Du kannst jede Buchung danach mit „Ändern“ umsortieren.</p><p class="small muted">Vergangene Monate zeigen dann nur die echten Buchungen. Im laufenden Monat kommen feste Posten dazu, die noch nicht abgebucht sind.</p><div class="row"><button class="primary" data-act="bankgo">' + b.fresh.length + ' Buchungen übernehmen</button><button data-act="bankno">Abbrechen</button></div>' : '<div class="row"><button data-act="bankno">OK</button></div>');
   }
   document.addEventListener("change", ev => {
     if (ev.target.id !== "bankfile" || !ev.target.files || !ev.target.files[0]) return;
