@@ -26,3 +26,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v19: Unsichtbare Haptik-Schalter in Saldo-Balken und ‹ › des Monatsblatts (iPhone: Haptik nur bei echtem Antippen, beim Wischen nicht möglich).
 - v20: Sparen zählt nicht mehr als Ausgabe, sondern erscheint getrennt als „gespart“ (Entscheidung des Besitzers).
 - v21: Haptik und Schalter aus dem Saldo-Diagramm entfernt, Wischen wieder wie vorher (Besitzer).
+- v22: Schätzung aus dem Schnitt der letzten 6 Monate wieder entfernt (Besitzer). Planung = feste Posten + Kreditraten + selbst eingetragenes Netto.

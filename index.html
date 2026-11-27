@@ -389,7 +389,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 21;
+  var APP_VERSION = 22;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -669,7 +669,7 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   function monthItems0(m) {
     const out = [];
-    if (mi(m) > mi(curMonth())) { const e = estimates(); Object.keys(e).forEach(key => { const [type, c] = key.split("|"); out.push({ src: "est", id: "est-" + key, name: type === "in" ? "Weitere Einnahmen (geschätzt)" : "Alltag (geschätzt)", amount: e[key], type, cat: c }); }); }
+    /* v22: Schätzung aus dem Schnitt der letzten 6 Monate entfernt (Wunsch des Besitzers); estimates() bleibt ungenutzt. */
     const bank = bankMonths()[m];
     txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example, bank: t.src === "bank" }); });
     /* Abgeschlossener Monat mit Kontoauszug: nur echte Buchungen. */
@@ -754,7 +754,7 @@ td button { padding: 4px 8px; font-size: 13px }
       '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
-      '<p class="small muted">Kommende Monate: feste Posten plus Schnitt der letzten 6 Monate.</p></div>';
+      '<p class="small muted">Kommende Monate: nur feste Posten und Kreditraten.</p></div>';
     // Kategorien
     const ty = S.cty, cs = catSums(perMonths(), ty), rows = cs.rows, tot = cs.tot;
     h += '<div class="block"><h2>Kategorien</h2><div class="ctl"><div class="seg" role="group" aria-label="Art"><button data-act="cty" data-id="out" aria-pressed="' + (ty === "out") + '">Ausgaben</button><button data-act="cty" data-id="in" aria-pressed="' + (ty === "in") + '">Einnahmen</button></div>' +
@@ -856,7 +856,7 @@ td button { padding: 4px 8px; font-size: 13px }
         '<div class="stats">' + (sh.inc ? '<div class="istat ed"><input id="inc-tot" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-m="' + m + '" value="' + (Math.round(t.i * 100) / 100).toString().replace(".", ",") + '"><span>Netto-Einnahmen · leer = automatisch</span></div>'
           : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + eur(t.sp) + '</b><span>gespart</span></div>' + "</div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
-      else if (isPlan(m)) h += '<p class="small muted">Geplant: feste Posten plus Schnitt der letzten 6 Monate.</p>';
+      else if (isPlan(m)) h += '<p class="small muted">Geplant: nur feste Posten und Kreditraten.</p>';
       ["out", "save", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen nach Kategorie" : ty === "save" ? "Gespart" : "Ausgaben nach Kategorie") + "</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
