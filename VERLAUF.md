@@ -29,3 +29,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v22: Schätzung aus dem Schnitt der letzten 6 Monate wieder entfernt (Besitzer). Planung = feste Posten + Kreditraten + selbst eingetragenes Netto.
 - v23: Saldo 36 Monate in die Zukunft; Kontostand selbst eintragen, dann zeigt der gewählte Monat den voraussichtlichen Kontostand am Monatsende (nur feste Posten, Kredite, Sparen).
 - v24: Beschriftung großer Minus-Balken über der Nulllinie statt über den Monatsnamen.
+- v25: Kontostand-Feld hat einen OK-Knopf und speichert auch beim Verlassen des Felds (iOS-Zahlentastatur hat kein Enter). Wischen im Saldo ersetzt das Feld während der Eingabe nicht mehr. Minuszeichen „−“ wird erkannt.

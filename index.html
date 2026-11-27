@@ -183,7 +183,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .incrow .ih { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
 .incrow .row button { padding: 9px 10px }
 .kline { display: flex; flex-direction: column; align-items: flex-start; gap: 0; width: 100%; text-align: left; border: 0; background: var(--sunken); border-radius: 8px; padding: 8px 10px; font-weight: 400; font-size: 14px }
-.kline b { font: 600 17px var(--display) } .kline.ed { display: block } .kline.ed input { background: var(--surface); margin-top: 4px }
+.kline b { font: 600 17px var(--display) } .kline.ed { display: block } .kline.ed .krow { display: flex; gap: 8px; margin-top: 4px } .kline.ed input { background: var(--surface); flex: 1; min-width: 0 }
 .sread button { white-space: nowrap; flex: none }
 .sread { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 64px }
 .sread > div { display: flex; flex-direction: column; min-width: 0 }
@@ -362,7 +362,7 @@ td button { padding: 4px 8px; font-size: 13px }
   "use strict";
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const num = s => { s = String(s == null ? "" : s).trim().replace(/[€\s]/g, ""); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); if (s === "") return null; const n = parseFloat(s); return isFinite(n) ? n : null; };
+  const num = s => { s = String(s == null ? "" : s).trim().replace(/[€\s]/g, "").replace(/[−–]/g, "-"); if (s.indexOf(",") >= 0) s = s.replace(/\./g, "").replace(",", "."); if (s === "") return null; const n = parseFloat(s); return isFinite(n) ? n : null; };
   const EUR = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
   const eur = n => EUR.format(n || 0);
   const eur0 = n => new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n || 0);
@@ -392,7 +392,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 24;
+  var APP_VERSION = 25;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -792,7 +792,7 @@ td button { padding: 4px 8px; font-size: 13px }
     return b;
   }
   function kontoHtml(m) {
-    if (S.kEdit) return '<div class="kline ed"><label>Kontostand heute (Girokonto)<input id="konto-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.konto ? String(S.konto.balance).replace(".", ",") : "") + '"></label></div>';
+    if (S.kEdit) return '<div class="kline ed"><label>Kontostand heute (Girokonto)<span class="krow"><input id="konto-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.konto ? String(S.konto.balance).replace(".", ",") : "") + '"><button class="primary" data-act="ksave">OK</button></span></label></div>';
     if (!S.konto) return '<button class="kline" data-act="kedit"><span>Kontostand eintragen, um zu sehen, was am Monatsende auf dem Konto steht ✎</span></button>';
     const b = projBal(m);
     return '<button class="kline" data-act="kedit"><span>' + (b == null ? "Kontostand " + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) : "Kontostand Ende " + mname(m) + ': <b class="' + (b < 0 ? "neg" : "") + '">' + eur(b) + "</b>") + '</span><span class="small muted">Stand ' + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + " ✎</span></button>";
@@ -807,7 +807,7 @@ td button { padding: 4px 8px; font-size: 13px }
     let best = null, bd = 1e9; sc.querySelectorAll(".sb").forEach(b => { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } });
     if (!best || best.dataset.id === S.sbSel) return;
     S.sbSel = best.dataset.id; sc.querySelectorAll(".sb.sel").forEach(b => b.classList.remove("sel")); best.classList.add("sel");
-    $("sread").innerHTML = sreadHtml(S.sbSel); $("kline").innerHTML = kontoHtml(S.sbSel);
+    $("sread").innerHTML = sreadHtml(S.sbSel); if (!S.kEdit) $("kline").innerHTML = kontoHtml(S.sbSel);
   }
   /* Laufender Monat etwa bei zwei Dritteln, damit Rückblick und Zukunft zu sehen sind */
   function posBars() {
@@ -1214,6 +1214,7 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
+    else if (a === "ksave") { const el = $("konto-in"); if (el) kontoSave(el); }
     else if (a === "kedit") { S.kEdit = true; $("kline").innerHTML = kontoHtml(S.sbSel); const el = $("konto-in"); if (el) { el.focus(); try { el.setSelectionRange(0, el.value.length); } catch (e) {} } }
     else if (a === "shm") { sheetMonth(+id, true); }
     else if (a === "cexp") { if (!S.sheet) return; S.sheet.open = S.sheet.open || {}; S.sheet.open[id] = !S.sheet.open[id]; const sc = $("sheet").scrollTop; refreshSheet(); $("sheet").scrollTop = sc; }
@@ -1303,6 +1304,8 @@ td button { padding: 4px 8px; font-size: 13px }
   });
 
   document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); if (ev.target.id === "inc-tot") incSave(ev.target); if (ev.target.id === "konto-in") kontoSave(ev.target); });
+  /* iOS-Zahlentastatur hat kein Enter: beim Verlassen des Felds oder per OK speichern */
+  document.addEventListener("focusout", ev => { if (ev.target.id === "konto-in") kontoSave(ev.target); });
   function kontoSave(el) {
     if (!S.kEdit) return; const raw = el.value.trim(), v = num(raw); S.kEdit = false;
     if (raw === "") put("konto", null); else if (v != null) put("konto", { kind: "konto", balance: Math.round(v * 100) / 100, date: today() });
