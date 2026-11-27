@@ -195,7 +195,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .sb i.bi, .sb i.bo { top: auto; bottom: 0; width: 40%; border-radius: 3px 3px 0 0 } .sb i.bi { left: 7%; right: auto; background: var(--good) } .sb i.bo { right: 7%; left: auto; background: var(--bad) }
 .sbars.io .sbv { top: auto; width: 54%; font-size: 9px; letter-spacing: -.04em } .sbars.io .sbv.vi { left: -4%; right: auto } .sbars.io .sbv.vo { right: -4%; left: auto }
 .ib { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; min-height: 0; padding: 0; margin-left: 8px; border-radius: 50%; border: 1.5px solid var(--muted); background: none; color: var(--muted); font: italic 700 12px/1 Georgia, serif; vertical-align: 2px; cursor: pointer; flex: none }
-.ib[aria-expanded="true"] { border-color: var(--accent); color: var(--accent) } p.kweg { margin-top: 4px }
+.ib[aria-expanded="true"] { border-color: var(--accent); color: var(--accent) } p.kweg { margin-top: 4px } #dline { margin-top: 6px } .kchart .kdl { fill: none; stroke: var(--good); stroke-width: 2; stroke-linejoin: round; opacity: .85 } .kchart .kdl.kf { stroke-dasharray: 4 4; opacity: .6 } .kchart .kdb { fill: var(--good); opacity: .14 } .kline.ed .krow label { flex: 1; min-width: 0; font-size: 12px }
 .grphead.sect { padding: 6px 2px 0; align-items: baseline } .grphead.sect b { font: 600 16px var(--display) }
 .kwrap { margin-top: 10px } .kchart.kchart { width: auto; display: block } .kpt circle { fill: var(--accent) } .kpt text { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kpt.now text { fill: var(--ink); font-weight: 600 } .kpt.sel circle { r: 4.5; stroke: var(--surface); stroke-width: 2 } .kpt.sel text { fill: var(--ink); font-weight: 700; font-size: 10.5px } #kscroll { scroll-snap-type: none } .kchart { width: 100%; height: auto; display: block } .kchart .kz { stroke: var(--muted); stroke-width: 1; opacity: .5 } .kchart .ka { fill: var(--accent); opacity: .12 } .kchart .kl { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round } .kchart .kf { stroke-dasharray: 4 4; opacity: .7 } .kchart .kd { fill: var(--accent); stroke: var(--surface); stroke-width: 2 } .kchart .kt { font-size: 10px; fill: var(--muted) } .kchart .kt.now { fill: var(--ink); font-weight: 600 } .kchart .kv { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kchart .kv.now { fill: var(--ink); font-weight: 600; font-size: 10px } .kchart .kp { fill: var(--accent) }
 .snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; opacity: .6 }
@@ -387,7 +387,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 39;
+  var APP_VERSION = 41;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -397,12 +397,16 @@ td button { padding: 4px 8px; font-size: 13px }
       else if (d.id === "budgets") bu = (d.data && d.data.limits) || {};
       else if (d.id === "incover") S.incov = (d.data && d.data.months) || {};
       else if (d.id === "konto") S.konto = d.data || null;
+      else if (d.id === "depot") S.depot = d.data || null;
+      else if (d.id === "depotr") S.depotr = d.data || null;
       else if (d.data && d.data.kind === "rec") r[d.id] = d.data;
       else if (d.data && d.data.kind === "tx") t[d.id] = d.data;
       else if (d.data && d.data.kind === "loan") l[d.id] = d.data;
     });
     if (!list.some(d => d.id === "incover")) S.incov = {};
     if (!list.some(d => d.id === "konto")) S.konto = null;
+    if (!list.some(d => d.id === "depot")) S.depot = null;
+    if (!list.some(d => d.id === "depotr")) S.depotr = null;
     S.rec = r; S.tx = t; S.loans = l; S.custom = c; S.budgets = bu; EST = null;
   }
   function localApply(id, data) {
@@ -411,6 +415,8 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (id === "budgets") S.budgets = data ? data.limits : {};
     else if (id === "incover") S.incov = data ? data.months : {};
     else if (id === "konto") S.konto = data || null;
+    else if (id === "depot") S.depot = data || null;
+    else if (id === "depotr") S.depotr = data || null;
     else { const box = id.charAt(0) === "r" ? S.rec : id.charAt(0) === "l" ? S.loans : S.tx; if (data) box[id] = data; else delete box[id]; }
   }
   const DOCS = {};
@@ -545,6 +551,8 @@ td button { padding: 4px 8px; font-size: 13px }
   function cleanDoc(id, d) {
     if (!d || typeof d !== "object" || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return null;
     if (id === "settings") return Array.isArray(d.cats) && d.cats.every(c => c && isStr(c.id) && isStr(c.name) && (c.type === "in" || c.type === "out")) ? { kind: "settings", cats: d.cats } : null;
+    if (id === "depotr") return isNum(d.min) && isNum(d.max) && d.min >= -20 && d.max <= 30 && d.min <= d.max ? { kind: "depotr", min: d.min, max: d.max } : null;
+    if (id === "depot") return isNum(d.balance) && isStr(d.date) && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? { kind: "depot", balance: d.balance, date: d.date } : null;
     if (id === "konto") return isNum(d.balance) && isStr(d.date) && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? { kind: "konto", balance: d.balance, date: d.date } : null;
     if (id === "incover") return d.months && typeof d.months === "object" && Object.keys(d.months).every(k => isMon(k) && isNum(d.months[k]) && d.months[k] >= 0) ? { kind: "incover", months: d.months } : null;
     if (id === "budgets") return d.limits && typeof d.limits === "object" && Object.keys(d.limits).every(k => isNum(d.limits[k]) && d.limits[k] > 0) ? { kind: "budgets", limits: d.limits } : null;
@@ -769,7 +777,7 @@ td button { padding: 4px 8px; font-size: 13px }
     /* v29 (Wunsch des Besitzers): je Monat zwei Balken, Einnahmen grün und Ausgaben rot (ohne Sparen), Betrag darüber. Saldo steht oben. */
     const kfmt = v => v >= 10000 ? (Math.round(v / 100) / 10).toString().replace(".", ",") + "k" : String(Math.round(v));
     if (!S.sbSel || sm.indexOf(S.sbSel) < 0) S.sbSel = cm;
-    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div>' + kontoChart() + '</div><div class="block"><div class="grphead" style="align-items:center"><h2>Saldo pro Monat</h2><button class="ghost" data-act="stoday">Heute</button></div><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">';
+    let h = '<div class="block"><h2>Kontostand</h2><div id="kline">' + kontoHtml(S.sbSel) + '</div><div id="dline">' + depotHtml(S.sbSel) + '</div>' + kontoChart() + '</div><div class="block"><div class="grphead" style="align-items:center"><h2>Saldo pro Monat</h2><button class="ghost" data-act="stoday">Heute</button></div><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">';
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, neg = t.s < 0, ht = none ? 0 : Math.max(1.2, Math.min(neg ? nmax : pmax, Math.abs(t.s)) / span * 80);
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
@@ -817,6 +825,32 @@ td button { padding: 4px 8px; font-size: 13px }
     if (m !== K) { const d = projBal(m) - projBal(K); r += (d < 0 ? " − " : " + ") + eur(Math.abs(d)) + " aus den Monaten bis " + mname(m).split(" ")[0]; }
     return r + ".";
   }
+  /* v40 (Wunsch des Besitzers): Gespartes ist nicht weg, sondern im Depot (Trade Republic). Depot am Monatsende =
+     eingetragener Depotwert (Doc `depot`: balance, date) ± Sparraten (Kategorie sparen) davor/danach, OHNE Kursentwicklung.
+     Ohne eingetragenen Wert: Summe aller Sparraten seit dem ersten Monat mit Daten. */
+  function depotBal(m) {
+    const km = mi(m), sv = k => { const t = S.sb && S.sb.sm.indexOf(im(k)) >= 0 ? S.sb.st[S.sb.sm.indexOf(im(k))] : totals(im(k)); return t.sp || 0; };
+    if (!S.depot) { let b = 0; for (let k = firstMonth(); k <= km; k++) b += sv(k); return b; }
+    const K = S.depot.date.slice(0, 7), kk = mi(K); let b = S.depot.balance;
+    const its = monthItems(K).filter(isSave);
+    if (km >= kk) { its.forEach(x => { if (x.open) b += x.amount; }); for (let k = kk + 1; k <= km; k++) b += sv(k); return b; }
+    its.forEach(x => { if (!x.open) b -= x.amount; }); for (let k = kk - 1; k > km; k--) b -= sv(k); return b;
+  }
+  /* v41 (Wunsch des Besitzers): Prognose mit Renditespanne, real (inflationsbereinigt), Standard 3–8 % p. a. (Doc `depotr`).
+     Ab dem laufenden Monat wächst der Depotstand monatlich mit (1+r)^(1/12), dazu kommen die geplanten Sparraten. */
+  const DRMIN = () => S.depotr ? S.depotr.min : 3, DRMAX = () => S.depotr ? S.depotr.max : 8;
+  function depotProj(m, r) {
+    const kc = mi(curMonth()), km = mi(m); if (km <= kc) return depotBal(m);
+    const f = Math.pow(1 + r / 100, 1 / 12); let b = depotBal(curMonth());
+    for (let k = kc + 1; k <= km; k++) { const t = S.sb && S.sb.sm.indexOf(im(k)) >= 0 ? S.sb.st[S.sb.sm.indexOf(im(k))] : totals(im(k)); b = b * f + (t.sp || 0); }
+    return b;
+  }
+  function depotHtml(m) {
+    const dc = v => String(v).replace(".", ",");
+    if (S.dEdit) return '<div class="kline ed"><label>Depotwert heute (z. B. Trade Republic)<span class="krow"><input id="depot-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.depot ? dc(S.depot.balance) : "") + '"></span></label><div class="krow"><label>Rendite min. % p. a.<input id="dr-min" inputmode="decimal" autocomplete="off" value="' + dc(DRMIN()) + '"></label><label>max. %<input id="dr-max" inputmode="decimal" autocomplete="off" value="' + dc(DRMAX()) + '"></label><button class="primary" data-act="dsave" style="align-self:flex-end">OK</button></div></div>';
+    const fut = mi(m) > mi(curMonth()), lo = depotProj(m, DRMIN()), hi = depotProj(m, DRMAX()), d = (lo + hi) / 2, b = S.konto ? projBal(m) : null;
+    return '<button class="kline dline" data-act="dedit"><span>Depot Ende ' + mname(m) + ': <b class="pos">' + (fut ? "≈ " : "") + eur(d) + "</b>" + (fut ? ' <span class="small muted">(' + eur0(lo) + " – " + eur0(hi) + ")</span>" : "") + (b != null ? ' · Gesamt <b class="' + (b + d < 0 ? "neg" : "") + '">' + (fut ? "≈ " : "") + eur(b + d) + "</b>" : "") + '</span><span class="small muted">' + (S.depot ? "Depotwert " + eur(S.depot.balance) + " am " + dfmt(S.depot.date) : "Summe deiner Sparraten · Depotwert eintragen") + " · Prognose " + dc(DRMIN()) + "–" + dc(DRMAX()) + " % real ✎</span></button>";
+  }
   function kontoHtml(m) {
     if (S.kEdit) return '<div class="kline ed"><label>Kontostand heute (Girokonto)<span class="krow"><input id="konto-in" inputmode="decimal" autocomplete="off" enterkeyhint="done" value="' + (S.konto ? String(S.konto.balance).replace(".", ",") : "") + '"><button class="primary" data-act="ksave">OK</button></span></label></div>';
     if (!S.konto) return '<button class="kline" data-act="kedit"><span>Kontostand eintragen, um zu sehen, was am Monatsende auf dem Konto steht ✎</span></button>';
@@ -834,7 +868,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (!best || best.dataset.id === S.sbSel) return;
     S.sbSel = best.dataset.id; sc.querySelectorAll(".sb.sel").forEach(b => b.classList.remove("sel")); best.classList.add("sel");
     document.querySelectorAll(".kpt.sel").forEach(e => e.classList.remove("sel")); const kp = document.querySelector('.kpt[data-m="' + S.sbSel + '"]'); if (kp) kp.classList.add("sel");
-    $("sread").innerHTML = sreadHtml(S.sbSel); if (!S.kEdit) $("kline").innerHTML = kontoHtml(S.sbSel);
+    $("sread").innerHTML = sreadHtml(S.sbSel); if (!S.kEdit) $("kline").innerHTML = kontoHtml(S.sbSel); if (!S.dEdit && $("dline")) $("dline").innerHTML = depotHtml(S.sbSel);
   }
   /* Laufender Monat etwa bei zwei Dritteln, damit Rückblick und Zukunft zu sehen sind */
   /* v30 (Wunsch des Besitzers): Verlauf des Girokontos, Monatsende. Vergangenheit rückgerechnet aus dem eingetragenen
@@ -853,22 +887,25 @@ td button { padding: 4px 8px; font-size: 13px }
   function kontoChart() {
     if (!S.konto || !S.sb) return "";
     const sm = S.sb.sm, v = sm.map(kontoBal); if (v.some(x => x == null)) return "";
-    const cm = curMonth(), now = sm.indexOf(cm), n = sm.length; S.kv = v;
+    const cm = curMonth(), now = sm.indexOf(cm), n = sm.length; S.kv = v; S.kdv = sm.map(depotBal); S.kdlo = sm.map(m => depotProj(m, DRMIN())); S.kdhi = sm.map(m => depotProj(m, DRMAX()));
     const lab = '<div class="sbl" style="grid-template-columns:repeat(' + n + "," + SBW + 'px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div>";
     const at = k => v[Math.max(0, Math.min(n - 1, now + k))];
     const f = (k, t) => '<div><b class="' + (at(k) < 0 ? "neg" : "") + '">' + eur0(at(k)) + "</b><span>" + t + "</span></div>";
-    return '<div class="kwrap"><div class="swrap"><div class="sscroll" id="kscroll"><div class="sinner"><div id="ksvg">' + kontoSvg(Math.max(0, now - 4), Math.min(n - 1, now + 4)) + "</div>" + lab + '</div></div></div><div class="stats">' + f(-12, "vor 12 Monaten") + f(0, "Ende " + mname(cm).split(" ")[0]) + f(12, "in 12 Monaten") + f(24, "in 24 Monaten") + '</div><p class="small muted">Monatsende auf dem Girokonto. Läuft beim Wischen mit der Saldo-Leiste mit, die Höhe passt sich den sichtbaren Monaten an. Rückblick aus deinem Kontostand zurückgerechnet, Zukunft nur mit festen Posten und Kreditraten (gestrichelt). Gespartes verlässt das Konto.</p></div>';
+    return '<div class="kwrap"><div class="swrap"><div class="sscroll" id="kscroll"><div class="sinner"><div id="ksvg">' + kontoSvg(Math.max(0, now - 4), Math.min(n - 1, now + 4)) + "</div>" + lab + '</div></div></div><div class="stats">' + f(-12, "vor 12 Monaten") + f(0, "Ende " + mname(cm).split(" ")[0]) + f(12, "in 12 Monaten") + f(24, "in 24 Monaten") + '</div><p class="small muted">Blau = Girokonto, grün = Depot. Bis heute: eingetragener Depotwert bzw. eingezahlte Sparraten. Zukunft: Fläche = Spanne der angenommenen Rendite (real, also nach Inflation; Standard 3–8 % p. a., einstellbar über ✎ beim Depot), gestrichelt = Mitte. Das ist eine Annahme, keine Vorhersage. Monatsende. Läuft beim Wischen mit der Saldo-Leiste mit, die Höhe passt sich den sichtbaren Monaten an. Rückblick aus deinem Kontostand zurückgerechnet, Zukunft nur mit festen Posten und Kreditraten (gestrichelt). Gespartes verlässt das Konto.</p></div>';
   }
   /* Höhe (y-Achse) richtet sich nach den sichtbaren Monaten a..b, damit auch kleine Änderungen zu sehen sind */
   function kontoSvg(a, b) {
     const sm = S.sb.sm, v = S.kv, cm = curMonth(), now = sm.indexOf(cm), n = sm.length, CW = SBW + 4, W = n * CW - 4, H = 150, T = 20, B = 6;
-    const vis = v.slice(a, b + 1), lo0 = Math.min(...vis), hi0 = Math.max(...vis), pad = Math.max(50, (hi0 - lo0) * 0.08), lo = lo0 - pad, hi = hi0 + pad, sp = hi - lo;
+    const dv = S.kdv || [], vis = v.slice(a, b + 1).concat((S.kdlo || []).slice(a, b + 1), (S.kdhi || []).slice(a, b + 1)), lo0 = Math.min(...vis), hi0 = Math.max(...vis), pad = Math.max(50, (hi0 - lo0) * 0.08), lo = lo0 - pad, hi = hi0 + pad, sp = hi - lo;
     const x = j => j * CW + SBW / 2, y = q => T + (hi - q) / sp * (H - T - B), pt = j => x(j).toFixed(1) + "," + y(v[j]).toFixed(1);
     const past = [], fut = []; v.forEach((q, j) => { if (j <= now) past.push(pt(j)); if (j >= now) fut.push(pt(j)); });
     let g = '<svg class="kchart" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Kontostand Girokonto am Monatsende">';
     if (lo < 0 && hi > 0) g += '<line x1="0" x2="' + W + '" y1="' + y(0).toFixed(1) + '" y2="' + y(0).toFixed(1) + '" class="kz"/>';
     if (past.length > 1) g += '<polygon class="ka" points="' + x(0) + "," + H + " " + past.join(" ") + " " + x(now) + "," + H + '"/><polyline class="kl" points="' + past.join(" ") + '"/>';
     if (fut.length > 1) g += '<polyline class="kl kf" points="' + fut.join(" ") + '"/>';
+    if (dv.length) { const dp = (arr, j) => x(j).toFixed(1) + "," + y(arr[j]).toFixed(1), d1 = [], lo = [], hi = [], mid = [];
+      dv.forEach((q, j) => { if (j <= now) d1.push(dp(dv, j)); if (j >= now) { lo.push(dp(S.kdlo, j)); hi.push(dp(S.kdhi, j)); mid.push(x(j).toFixed(1) + "," + y((S.kdlo[j] + S.kdhi[j]) / 2).toFixed(1)); } });
+      g += '<polygon class="kdb" points="' + lo.concat(hi.reverse()).join(" ") + '"/><polyline class="kdl" points="' + d1.join(" ") + '"/><polyline class="kdl kf" points="' + mid.join(" ") + '"/>'; }
     v.forEach((q, j) => { g += '<g class="kpt' + (sm[j] === S.sbSel ? " sel" : "") + (j === now ? " now" : "") + '" data-m="' + sm[j] + '"><circle cx="' + x(j).toFixed(1) + '" cy="' + y(q).toFixed(1) + '" r="2.5"/><text x="' + x(j).toFixed(1) + '" y="' + (y(q) - 7).toFixed(1) + '" text-anchor="middle">' + new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(q) + "</text></g>"; });
     return g + "</svg>";
   }
@@ -1309,6 +1346,8 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "mopen") { S.sheet = { k: "m", m: id }; openSheet(); }
     else if (a === "copen") { S.sheet = { k: "c", cat: id, ty: b.dataset.ty || S.cty, ms: b.dataset.m ? [b.dataset.m] : perMonths(), lab: b.dataset.m ? mname(b.dataset.m) : perLabel() }; openSheet(); }
     else if (a === "sheetclose") { closeSheet(); }
+    else if (a === "dsave") depotSave();
+    else if (a === "dedit") { S.dEdit = true; $("dline").innerHTML = depotHtml(S.sbSel); const el = $("depot-in"); if (el) { el.focus(); try { el.setSelectionRange(0, el.value.length); } catch (e) {} } }
     else if (a === "ksave") { const el = $("konto-in"); if (el) kontoSave(el); }
     else if (a === "kedit") { S.kEdit = true; $("kline").innerHTML = kontoHtml(S.sbSel); const el = $("konto-in"); if (el) { el.focus(); try { el.setSelectionRange(0, el.value.length); } catch (e) {} } }
     else if (a === "shm") { sheetMonth(+id, true); }
@@ -1405,9 +1444,17 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "exclear") { if (arm(b, "Wirklich alle Beispiele entfernen?")) clearExamples(); }
   });
 
-  document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); if (ev.target.id === "inc-tot") incSave(ev.target); if (ev.target.id === "konto-in") kontoSave(ev.target); });
+  document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); if (ev.target.id === "inc-tot") incSave(ev.target); if (ev.target.id === "konto-in") kontoSave(ev.target);  });
   /* iOS-Zahlentastatur hat kein Enter: beim Verlassen des Felds oder per OK speichern */
-  document.addEventListener("focusout", ev => { if (ev.target.id === "konto-in") kontoSave(ev.target); });
+  document.addEventListener("focusout", ev => { if (ev.target.id === "konto-in") kontoSave(ev.target); if (/^(depot-in|dr-min|dr-max)$/.test(ev.target.id) && !(ev.relatedTarget && /^(depot-in|dr-min|dr-max)$/.test(ev.relatedTarget.id)) && !(ev.relatedTarget && ev.relatedTarget.dataset && ev.relatedTarget.dataset.act === "dsave")) setTimeout(() => { const f = document.activeElement; if (!f || !/^(depot-in|dr-min|dr-max)$/.test(f.id)) depotSave(); }, 0); });
+  function depotSave() {
+    if (!S.dEdit) return; const el = $("depot-in"); if (!el) return; const raw = el.value.trim(), v = num(raw); S.dEdit = false;
+    const old = S.depot;
+    if (raw === "") { if (old) put("depot", null); } else if (v != null && v >= 0 && (!old || old.balance !== Math.round(v * 100) / 100)) put("depot", { kind: "depot", balance: Math.round(v * 100) / 100, date: today() });
+    let a = num($("dr-min").value), b2 = num($("dr-max").value);
+    if (a != null && b2 != null) { if (a > b2) [a, b2] = [b2, a]; a = Math.max(-20, Math.min(30, a)); b2 = Math.max(-20, Math.min(30, b2)); if (a !== DRMIN() || b2 !== DRMAX()) put("depotr", { kind: "depotr", min: a, max: b2 }); }
+    renderSum();
+  }
   function kontoSave(el) {
     if (!S.kEdit) return; const raw = el.value.trim(), v = num(raw); S.kEdit = false;
     if (raw === "") put("konto", null); else if (v != null) put("konto", { kind: "konto", balance: Math.round(v * 100) / 100, date: today() });
@@ -1419,7 +1466,7 @@ td button { padding: 4px 8px; font-size: 13px }
     if (raw === "") delete o[m]; else if (v != null && v >= 0) o[m] = Math.round(v * 100) / 100; else return;
     S.sheet.inc = false; put("incover", Object.keys(o).length ? { kind: "incover", months: o } : null); haptic(); renderAll();
   }
-  document.addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.target.id === "inc-tot" || ev.target.id === "konto-in")) { ev.preventDefault(); ev.target.blur(); return; } if (ev.key === "Escape" && $("sheetov")) closeSheet(); if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches && ev.target.matches("circle.s")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+  document.addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.target.id === "inc-tot" || ev.target.id === "konto-in")) { ev.preventDefault(); ev.target.blur(); return; } if (ev.key === "Enter" && /^(depot-in|dr-min|dr-max)$/.test(ev.target.id)) { ev.preventDefault(); ev.target.blur(); return; } if (ev.key === "Escape" && $("sheetov")) closeSheet(); if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches && ev.target.matches("circle.s")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
   document.addEventListener("input", ev => { const ds = ev.target.dataset; if (ds.ch != null) { F.changes[+ds.ch][ds.k] = ev.target.value; return; } if (ev.target.id === "lx-extra") { S.extra = Math.max(0, num(ev.target.value) || 0); renderLoan(); } });
 
   /* ---------- App-Verhalten wie im Trainingslog ---------- */
