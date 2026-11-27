@@ -388,7 +388,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 43;
+  var APP_VERSION = 44;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -493,7 +493,12 @@ td button { padding: 4px 8px; font-size: 13px }
     if (j && typeof j === "object") Object.keys(j).forEach(k => { if (j[k]) DOCS[k] = j[k]; else delete DOCS[k]; if (MODE === "idb") pend[k] = 1; });
     if (MODE === "ls" && j) { lsSet("finanzen-data", DOCS); lsSet("finanzen-journal", null); }
     applyDocs(Object.keys(DOCS).map(k => ({ id: k, data: DOCS[k] })));
-    S.ready = true; setSync("Auf diesem Gerät gespeichert"); renderAll(); flush();
+    S.ready = true; setSync("Auf diesem Gerät gespeichert");
+    /* Alte Entwürfe, die nur ein schon gespeicherter Eintrag sind (Fehler bis v43), wegräumen */
+    const ln = $("lf-name").value.trim(), rn = $("rf-name").value.trim();
+    if (!F.ledit && ln && loans().some(l => l.name === ln)) resetLoanForm();
+    if (!F.redit && rn && recs().some(r => r.name === rn)) resetRecForm();
+    renderAll(); flush();
     if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
     checkUpdate(); setTimeout(cacheHeal, 6000);
     document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); else checkUpdate(true); });
@@ -606,7 +611,8 @@ td button { padding: 4px 8px; font-size: 13px }
 
   /* Formular-Entwürfe: halb ausgefüllte Felder überstehen ein Neuladen der Seite */
   const DRAFT_IDS = ["bf-amount", "rf-name", "rf-amount", "rf-every", "rf-start", "rf-end", "rf-note", "tf-date", "tf-amount", "tf-name", "lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-asof", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"];
-  function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
+  /* v44: Entwürfe nur für NEUE Einträge merken (nicht beim Ändern), nach Speichern/Abbrechen wird der Entwurf gelöscht */
+  function saveForms() { const o = {}; DRAFT_IDS.forEach(id => { if ((F.ledit && id.startsWith("lf-")) || (F.redit && id.startsWith("rf-")) || (F.tedit && id.startsWith("tf-"))) return; const el = $(id); if (el && el.value) o[id] = el.value; }); try { localStorage.setItem("finanzen-draft", JSON.stringify(o)); } catch (e) {} }
   function restoreForms() { try { const o = JSON.parse(localStorage.getItem("finanzen-draft") || "{}"); Object.keys(o).forEach(id => { const el = $(id); if (el && DRAFT_IDS.includes(id)) el.value = o[id]; }); } catch (e) {} }
   document.addEventListener("input", ev => { if (DRAFT_IDS.includes(ev.target.id)) saveForms(); });
   document.addEventListener("click", () => setTimeout(saveForms, 0));
@@ -1165,7 +1171,7 @@ td button { padding: 4px 8px; font-size: 13px }
   function resetRecForm() {
     F.changes = []; renderChanges();
     F.redit = null; ["rf-name", "rf-amount", "rf-end", "rf-note"].forEach(id => { $(id).value = ""; });
-    $("rf-start").value = curMonth(); $("rf-every").value = "1"; $("rf-cancel").hidden = true; recModeForm();
+    $("rf-start").value = curMonth(); $("rf-every").value = "1"; $("rf-cancel").hidden = true; recModeForm(); saveForms();
   }
 
   /* ---------- Buchungen ---------- */
@@ -1263,7 +1269,7 @@ td button { padding: 4px 8px; font-size: 13px }
       "<tr><td>" + dfmt(t.date) + "</td><td>" + esc(t.name || catName(t.cat)) + exTag(t) + '<span class="sub">' + esc(catName(t.cat)) + (t.src === "bank" ? " · Konto" : "") + '</span></td><td class="r ' + (t.type === "in" ? "pos" : "neg") + '">' + (t.type === "in" ? "+" : "−") + eur(t.amount) + '</td><td class="r act"><button data-act="tedit" data-id="' + esc(t.id) + '">Ändern</button><button class="danger" data-act="tdel" data-id="' + esc(t.id) + '">Löschen</button></td></tr>').join("") + "</tbody></table></div>";
     $("txlist").innerHTML = h + "</div>";
   }
-  function resetTxForm() { F.tedit = null; $("tf-name").value = ""; $("tf-amount").value = ""; $("tf-title").textContent = "Einzelne Buchung eintragen"; $("tf-cancel").hidden = true; }
+  function resetTxForm() { F.tedit = null; $("tf-name").value = ""; $("tf-amount").value = ""; $("tf-title").textContent = "Einzelne Buchung eintragen"; $("tf-cancel").hidden = true; saveForms(); }
 
   /* ---------- Kredite ---------- */
   function renderLoan() {
@@ -1301,7 +1307,7 @@ td button { padding: 4px 8px; font-size: 13px }
   const loanBtns = l => '<div class="row"><button data-act="ledit" data-id="' + esc(l.id) + '">Ändern</button><button data-act="lpaid" data-id="' + esc(l.id) + '">Vorzeitig abgelöst</button><button class="danger" data-act="ldel" data-id="' + esc(l.id) + '">Löschen</button></div>';
   function resetLoanForm() {
     F.ledit = null; ["lf-name", "lf-lender", "lf-balance", "lf-rate", "lf-int", "lf-orig", "lf-first", "lf-note", "lf-balloon", "lf-end"].forEach(id => { $(id).value = ""; });
-    $("lf-asof").value = curMonth(); $("lf-title").textContent = "Laufenden Kredit eintragen"; $("lf-cancel").hidden = true;
+    $("lf-asof").value = curMonth(); $("lf-title").textContent = "Laufenden Kredit eintragen"; $("lf-cancel").hidden = true; saveForms();
   }
 
   function fillCats(selId, type) {
