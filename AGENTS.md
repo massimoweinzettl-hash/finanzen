@@ -4,6 +4,12 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 
 **Stand:** v24 (27.11.2026)
 
+## Daten-Schutz (feste Regel des Besitzers, seit 27.11.2026)
+- Das Repo und GitHub Pages sind öffentlich. NIE Screenshots, Testbilder, Testskripte, Sicherungen (.json) oder echte Daten des Besitzers ins Repo legen oder committen.
+- Tests und Screenshots nur außerhalb des Repo-Ordners (Scratchpad), mit absoluten Ausgabepfaden; nie aus dem Repo-Ordner heraus starten.
+- Vor JEDEM Commit/Push `git status --short` und `git diff --cached --stat` prüfen: erlaubt sind nur die bekannten App-Dateien (index.html, sw.js, manifest.webmanifest, Icons, Schriften, .md/.txt-Doku, .gitignore). Alles andere: nicht committen.
+- `.gitignore` sperrt *.png (außer Icons), *.json, v7/ und weitere Testdateien.
+
 ## Nach jeder Änderung
 - `APP_VERSION` in `index.html` +1 (die installierte App zeigt dann „Update bereit“).
 - Eine Zeile in `VERLAUF.md`, diese Datei aktualisieren, `ANLEITUNG.txt` bei geänderter Bedienung.

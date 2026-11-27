@@ -9,3 +9,8 @@ finanzen-sicherung-*.json
 !apple-touch-icon.png
 v7/
 *.json
+*.jpg
+*.jpeg
+*.js
+!sw.js
+*.csv
