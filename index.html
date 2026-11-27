@@ -67,6 +67,11 @@ section.tab { display: flex; flex-direction: column; gap: 16px }
 .note { font-size: 13px; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 8px 10px }
 label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 500; color: var(--muted) }
 input, select { font: 16px var(--body); color: var(--ink); background: var(--sunken); border: 1px solid transparent; border-radius: 8px; padding: 9px 10px; width: 100%; min-width: 0 }
+input, select { min-height: 42px; line-height: 1.25; display: block; max-width: 100% }
+input[type="date"], input[type="month"] { -webkit-appearance: none; appearance: none; text-align: left }
+input[type="date"]::-webkit-date-and-time-value, input[type="month"]::-webkit-date-and-time-value { text-align: left }
+select { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat }
+label { min-width: 0 }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
 button { font: 600 14px var(--body); border-radius: 8px; cursor: pointer; padding: 10px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--ink) }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
@@ -145,7 +150,7 @@ td button { padding: 4px 8px; font-size: 13px }
       <h2 id="rf-title">Wiederkehrenden Posten anlegen</h2>
       <div class="chips" role="group" aria-label="Art"><button data-act="rftype" data-id="out" aria-pressed="true">Ausgabe</button><button data-act="rftype" data-id="in" aria-pressed="false">Einnahme</button></div>
       <div class="row">
-        <label class="f2">Bezeichnung<input id="rf-name" autocomplete="off" placeholder="z. B. Gehalt, Jahressonderzahlung, Miete"></label>
+        <label class="f2">Bezeichnung<input id="rf-name" autocomplete="off" placeholder="z. B. Gehalt, Miete"></label>
         <label class="f1">Betrag (€)<input id="rf-amount" inputmode="decimal" autocomplete="off"></label>
       </div>
       <div class="row">
@@ -162,7 +167,7 @@ td button { padding: 4px 8px; font-size: 13px }
         <div id="rf-changes" style="display:flex;flex-direction:column;gap:8px"></div>
         <button class="ghost" style="align-self:flex-start" data-act="chadd">+ Änderung</button>
       </div>
-      <label>Notiz (optional)<input id="rf-note" autocomplete="off" placeholder="z. B. Kündigungsfrist 3 Monate, Vertragsnummer"></label>
+      <label>Notiz (optional)<input id="rf-note" autocomplete="off" placeholder="z. B. Kündigungsfrist 3 Monate"></label>
       <div class="row" style="align-items:center"><button class="primary" data-act="rsave">Speichern</button><button data-act="rcancel" id="rf-cancel" hidden>Abbrechen</button><span class="small muted" id="rf-msg"></span></div>
     </div>
     <div id="reclist" style="display:flex;flex-direction:column;gap:16px"></div>
@@ -177,7 +182,7 @@ td button { padding: 4px 8px; font-size: 13px }
         <label class="f1">Betrag (€)<input id="tf-amount" inputmode="decimal" autocomplete="off"></label>
       </div>
       <div class="row">
-        <label class="f2">Beschreibung<input id="tf-name" autocomplete="off" placeholder="z. B. Wocheneinkauf, Tanken"></label>
+        <label class="f2">Beschreibung<input id="tf-name" autocomplete="off" placeholder="z. B. Einkauf"></label>
         <label class="f1">Kategorie<select id="tf-cat"></select></label>
       </div>
       <div class="row" style="align-items:center"><button class="primary" data-act="tsave">Speichern</button><button data-act="tcancel" id="tf-cancel" hidden>Abbrechen</button><span class="small muted" id="tf-msg">Für Dinge, die nicht regelmäßig kommen. Feste Posten gehören in „Fix &amp; Abos“.</span></div>
@@ -190,7 +195,7 @@ td button { padding: 4px 8px; font-size: 13px }
     <div class="block">
       <h2 id="lf-title">Laufenden Kredit eintragen</h2>
       <div class="row">
-        <label class="f2">Bezeichnung<input id="lf-name" autocomplete="off" placeholder="z. B. Autokredit, Ratenkauf Sofa"></label>
+        <label class="f2">Bezeichnung<input id="lf-name" autocomplete="off" placeholder="z. B. Autokredit"></label>
         <label class="f1">Bank / Kreditgeber<input id="lf-lender" autocomplete="off"></label>
       </div>
       <div class="row">
@@ -203,7 +208,7 @@ td button { padding: 4px 8px; font-size: 13px }
         <label class="f1">Kreditbetrag am Anfang (optional)<input id="lf-orig" inputmode="decimal" autocomplete="off"></label>
         <label class="f1">Erste Rate (optional)<input type="month" id="lf-first"></label>
       </div>
-      <label>Notiz (optional)<input id="lf-note" autocomplete="off" placeholder="z. B. Sondertilgung 5 % jährlich kostenlos"></label>
+      <label>Notiz (optional)<input id="lf-note" autocomplete="off" placeholder="z. B. Sondertilgung erlaubt"></label>
       <div class="row" style="align-items:center"><button class="primary" data-act="lsave">Speichern</button><button data-act="lcancel" id="lf-cancel" hidden>Abbrechen</button><span class="small muted" id="lf-msg">Restschuld und Zinssatz stehen auf dem Kontoauszug oder im Online-Banking. Die Rate wird automatisch jeden Monat als Ausgabe unter „Kredite &amp; Raten“ gezählt, bis der Kredit abbezahlt ist.</span></div>
     </div>
     <div class="block">
@@ -251,7 +256,7 @@ td button { padding: 4px 8px; font-size: 13px }
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 2;
+  var APP_VERSION = 3;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
