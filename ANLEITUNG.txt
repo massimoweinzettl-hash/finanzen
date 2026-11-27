@@ -23,7 +23,8 @@ WICHTIG
 
 WO FINDE ICH WAS?
 -----------------
-- Übersicht: Saldo pro Monat (Monat antippen = Überblick mit Einnahmen,
+- Übersicht: Saldo pro Monat als Balkendiagramm, wischbar in Vergangenheit und
+  Zukunft (Balken antippen = Überblick mit Einnahmen,
   Ausgaben und Kategorien), darunter Kategorien als Kuchendiagramm, umschaltbar
   Ausgaben/Einnahmen, € oder %, Monat oder Jahr. Kategorie antippen zeigt alle
   Einträge darin.

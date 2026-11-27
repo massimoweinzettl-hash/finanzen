@@ -2,7 +2,7 @@
 
 Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei jeder Änderung mitpflegen.** Nur der aktuelle Stand; Geschichte in `VERLAUF.md`. Das Repo ist öffentlich – nichts Persönliches eintragen, keine echten Beträge.
 
-**Stand:** v7 (27.11.2026)
+**Stand:** v8 (27.11.2026)
 
 ## Nach jeder Änderung
 - `APP_VERSION` in `index.html` +1 (die installierte App zeigt dann „Update bereit“).
@@ -28,4 +28,4 @@ Gemeinsamer Stand für alle KI-Assistenten an diesem Repo. **Zuerst lesen, bei j
 - Budget pro Kategorie (angeboten, nicht beauftragt).
 
 ## Aufbau
-- Reiter (seit v7, Wunsch des Besitzers): Übersicht · Budgets · Transaktionen. Übersicht = Saldo pro Monat (Jahr wählbar, Monat antippen → Blatt mit Monatsüberblick) und Kategorien als Kuchendiagramm (Ausgaben/Einnahmen, €/%, Monat/Jahr; Kategorie antippen → Blatt mit allen Einträgen). Budgets = Umschalter Budgets (Monatslimits pro Kategorie) · Fix & Abos · Kredite. Transaktionen = früher Buchungen. Kategorie-Farben fest pro Kategorie (`CCOL`), nicht nach Rang. Alte gespeicherte Reiter `rec`/`loan` landen unter Budgets. Zahnrad oben links: Sicherung, Version. Beispieldaten nur über die leere Übersicht.
+- Reiter (seit v7, Wunsch des Besitzers): Übersicht · Budgets · Transaktionen. Übersicht = Saldo pro Monat als waagerecht wischbares Balkendiagramm (seit v8: bis 36 Monate zurück, 12 Monate geplant voraus, laufender Monat bei ca. 2/3, Plus grün nach oben, Minus rot nach unten, geplante Balken blass; Balken antippen → Blatt mit Monatsüberblick) und Kategorien als Kuchendiagramm (Ausgaben/Einnahmen, €/%, Monat/Jahr; Kategorie antippen → Blatt mit allen Einträgen). Budgets = Umschalter Budgets (Monatslimits pro Kategorie) · Fix & Abos · Kredite. Transaktionen = früher Buchungen. Kategorie-Farben fest pro Kategorie (`CCOL`), nicht nach Rang. Alte gespeicherte Reiter `rec`/`loan` landen unter Budgets. Zahnrad oben links: Sicherung, Version. Beispieldaten nur über die leere Übersicht.
