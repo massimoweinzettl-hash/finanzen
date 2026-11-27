@@ -21,3 +21,5 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v14: Haptik bei jedem Monatswechsel im Saldo-Diagramm, auch direkt während der Berührung (iPhone-Schalter-Umweg wirkt nur, solange der Finger aufliegt).
 - v15: „Einnahmen anpassen“ verschlankt (Besitzer: zu groß): Einnahmen-Zahl im Monatsblatt antippen, Netto-Gehalt eintragen, ab jetzt / nur dieser Monat; Einmalzahlung über kleinen Link.
 - v16: Im Monatsblatt links/rechts wischen (oder ‹ ›) wechselt den Monat, mit Haptik.
+- v17: Einnahmen im Monatsblatt nur noch EIN Feld: Netto-Einnahmen dieses Monats (Doc `incover`), ersetzt alle Einnahmen des Monats (Besitzer: keine Unterscheidung, nur dieser Monat).
+- v18: Schätzung kommender Monate ohne Doppelzählung: Kategorie-Schnitt der letzten 6 Monate minus feste Posten der Kategorie (vorher z. B. Tanken als fester Posten plus alle Tankbelege, ~3.800 € statt ~3.460 € Ausgaben).

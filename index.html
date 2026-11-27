@@ -173,7 +173,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .crow .chev { color: var(--muted); font-size: 11px; margin-left: 4px }
 .istat { display: flex; flex-direction: column; align-items: flex-start; text-align: left; border: 0; background: var(--sunken); border-radius: 8px; padding: 4px 8px; margin: -4px -8px; font-weight: 400; min-width: 0 }
 .istat b { font: 600 20px var(--display); white-space: nowrap } .istat span { font-size: 12px; color: var(--muted) }
-.istat[aria-expanded="true"] { outline: 2px solid var(--accent) }
+.istat.ed { outline: 2px solid var(--accent); padding: 4px 8px } .istat.ed input { font: 600 20px var(--display); padding: 2px 6px; min-height: 0; background: var(--surface); color: var(--good) }
 .incbox { display: flex; flex-direction: column; gap: 8px; background: var(--sunken); border-radius: 10px; padding: 10px }
 .incbox input { background: var(--surface) } .incbox .seg { background: var(--surface) } .incbox .seg button[aria-pressed="true"] { background: var(--accent-soft) }
 .incone { display: flex; align-items: center; gap: 8px } .incone span { flex: 1; min-width: 0 } .incone button { padding: 4px 8px }
@@ -381,14 +381,14 @@ td button { padding: 4px 8px; font-size: 13px }
     { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "shop", name: "Einkäufe & Shopping", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
   ];
 
-  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, tab: "sum", bsub: "lim", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
+  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, incov: {}, tab: "sum", bsub: "lim", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
   const F = { changes: [], rtype: "out", redit: null, ttype: "out", tedit: null, ledit: null };
 
   /* ---------- Speicher: nur auf diesem Gerät (wie im Trainingslog) ----------
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 16;
+  var APP_VERSION = 18;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -396,16 +396,19 @@ td button { padding: 4px 8px; font-size: 13px }
     list.forEach(d => {
       if (d.id === "settings") c = (d.data && d.data.cats) || [];
       else if (d.id === "budgets") bu = (d.data && d.data.limits) || {};
+      else if (d.id === "incover") S.incov = (d.data && d.data.months) || {};
       else if (d.data && d.data.kind === "rec") r[d.id] = d.data;
       else if (d.data && d.data.kind === "tx") t[d.id] = d.data;
       else if (d.data && d.data.kind === "loan") l[d.id] = d.data;
     });
+    if (!list.some(d => d.id === "incover")) S.incov = {};
     S.rec = r; S.tx = t; S.loans = l; S.custom = c; S.budgets = bu; EST = null;
   }
   function localApply(id, data) {
     EST = null;
     if (id === "settings") S.custom = data ? data.cats : [];
     else if (id === "budgets") S.budgets = data ? data.limits : {};
+    else if (id === "incover") S.incov = data ? data.months : {};
     else { const box = id.charAt(0) === "r" ? S.rec : id.charAt(0) === "l" ? S.loans : S.tx; if (data) box[id] = data; else delete box[id]; }
   }
   const DOCS = {};
@@ -540,6 +543,7 @@ td button { padding: 4px 8px; font-size: 13px }
   function cleanDoc(id, d) {
     if (!d || typeof d !== "object" || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) return null;
     if (id === "settings") return Array.isArray(d.cats) && d.cats.every(c => c && isStr(c.id) && isStr(c.name) && (c.type === "in" || c.type === "out")) ? { kind: "settings", cats: d.cats } : null;
+    if (id === "incover") return d.months && typeof d.months === "object" && Object.keys(d.months).every(k => isMon(k) && isNum(d.months[k]) && d.months[k] >= 0) ? { kind: "incover", months: d.months } : null;
     if (id === "budgets") return d.limits && typeof d.limits === "object" && Object.keys(d.limits).every(k => isNum(d.limits[k]) && d.limits[k] > 0) ? { kind: "budgets", limits: d.limits } : null;
     if (d.kind === "rec") return isStr(d.name) && isNum(d.amount) && isMon(d.start) && (d.type === "in" || d.type === "out") && [1, 3, 6, 12].includes(d.every) && (!d.changes || (Array.isArray(d.changes) && d.changes.every(c => isMon(c.from) && isNum(c.amount)))) && (!d.over || (typeof d.over === "object" && Object.keys(d.over).every(k => isMon(k) && isNum(d.over[k])))) ? d : null;
     if (d.kind === "tx") return isNum(d.amount) && isStr(d.date) && /^\d{4}-\d{2}-\d{2}$/.test(d.date) && (d.type === "in" || d.type === "out") ? d : null;
@@ -642,26 +646,27 @@ td button { padding: 4px 8px; font-size: 13px }
   /* Monate mit eingespieltem Kontoauszug: dort zählen die echten Buchungen, feste Posten und Kreditraten nicht zusätzlich
      (Wunsch des Besitzers: nichts doppelt). Für Monate ohne Kontoauszug planen die festen Posten. */
   const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
-  /* Geschätzte Alltagsausgaben und weitere Einnahmen für kommende Monate (Wunsch des Besitzers): Schnitt der letzten
-     6 abgeschlossenen Monate je Art + Kategorie, aber nur Buchungen, die zu keinem festen Posten / keiner Kreditrate
-     passen (gleiche Art, Betrag ±5 %, mind. 1 €; Rhythmus des Postens, Startmonat egal – neue Posten waren vorher evtl. schon da). */
+  /* Geschätzte Alltagsausgaben und weitere Einnahmen für kommende Monate (Wunsch des Besitzers). v17: je Art + Kategorie
+     zählt der Schnitt der letzten 6 abgeschlossenen Monate (echte Buchungen) als Erwartung; feste Posten und Kreditraten
+     dieser Kategorie (auf den Monat umgerechnet) werden davon abgezogen, die Schätzung ist nur der Rest. So zählt z. B.
+     Tanken nicht doppelt (fester Posten 150 € + Tankbelege), und ein Monat liegt nie unter dem Schnitt seiner Kategorie. */
   let EST = null;
   function estimates() {
     if (EST && EST.m === curMonth()) return EST.v;
-    const kc = mi(curMonth()), sum = {}, v = {};
-    EST = { m: curMonth(), v };
-    for (let k = kc - 6; k < kc; k++) {
-      const m = im(k), pool = monthItems(m).filter(x => x.src === "tx"), used = {};
-      const due = [];
-      recs().forEach(r => { const n = r.every || 1; if (r.end === r.start ? dueIn(r, m) : ((k - mi(r.start)) % n + n) % n === 0) due.push({ type: r.type, a: [amountAt(r, m), amountAt(r, curMonth())] }); });
-      loans().forEach(l => { due.push({ type: "out", a: [l.rate] }); });
-      due.forEach(d => { const hit = pool.find(x => !used[x.id] && x.type === d.type && d.a.some(a => Math.abs(x.amount - a) <= Math.max(1, a * 0.05))); if (hit) used[hit.id] = 1; });
-      pool.forEach(x => { if (used[x.id]) return; const key = x.type + "|" + x.cat; sum[key] = (sum[key] || 0) + x.amount; });
-    }
-    Object.keys(sum).forEach(key => { const e = sum[key] / 6; if (e >= 1) v[key] = Math.round(e * 100) / 100; });
+    const kc = mi(curMonth()), cm = curMonth(), sum = {}, fix = {}, v = {};
+    EST = { m: cm, v };
+    for (let k = kc - 6; k < kc; k++) monthItems0(im(k)).forEach(x => { if (x.src === "rec" || x.src === "loan" || x.src === "tx") { const key = x.type + "|" + x.cat; sum[key] = (sum[key] || 0) + x.amount; } });
+    recs().forEach(r => { if (r.end === r.start || (r.end && mi(r.end) < kc)) return; const key = r.type + "|" + r.cat; fix[key] = (fix[key] || 0) + amountAt(r, cm) / (r.every || 1); });
+    loans().forEach(l => { const p = loanPay(l, kc + 1, sched(l)); if (p > 0) fix["out|kredit"] = (fix["out|kredit"] || 0) + p; });
+    Object.keys(sum).forEach(key => { const e = sum[key] / 6 - (fix[key] || 0); if (e >= 1) v[key] = Math.round(e * 100) / 100; });
     return v;
   }
+  /* v17 (Wunsch des Besitzers): Netto-Einnahmen eines Monats direkt eintragen – ersetzt alle Einnahmen dieses einen Monats. */
   function monthItems(m) {
+    const v = S.incov[m]; if (v == null) return monthItems0(m);
+    return monthItems0(m).filter(x => x.type !== "in").concat([{ src: "inov", id: "inov-" + m, name: "Netto-Einnahmen (selbst eingetragen)", amount: v, type: "in", cat: "gehalt" }]);
+  }
+  function monthItems0(m) {
     const out = [];
     if (mi(m) > mi(curMonth())) { const e = estimates(); Object.keys(e).forEach(key => { const [type, c] = key.split("|"); out.push({ src: "est", id: "est-" + key, name: type === "in" ? "Weitere Einnahmen (geschätzt)" : "Alltag (geschätzt)", amount: e[key], type, cat: c }); }); }
     const bank = bankMonths()[m];
@@ -845,12 +850,12 @@ td button { padding: 4px 8px; font-size: 13px }
   function sheetHtml() {
     const sh = S.sheet; if (!sh) return "";
     if (sh.k === "m") {
-      const m = sh.m, editable = !(bankMonths()[sh.m] && mi(sh.m) < mi(curMonth())), t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
+      const m = sh.m, t = totals(m), items = monthItems(m).map(x => Object.assign({ m }, x)), rate = t.i > 0 ? t.s / t.i * 100 : null;
       let h = '<div class="shead"><div class="month" style="gap:6px"><button data-act="shm" data-id="-1" aria-label="Vorheriger Monat">‹</button><h2>' + mname(m) + '</h2><button data-act="shm" data-id="1" aria-label="Nächster Monat">›</button></div><button data-act="sheetclose">Schließen</button></div>' +
-        '<div class="stats">' + (editable ? '<button class="istat" data-act="incopen" aria-expanded="' + !!sh.inc + '"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎</span></button>' : '<div><b class="pos">' + eur(t.i) + '</b><span>Einnahmen</span></div>') + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
+        '<div class="stats">' + (sh.inc ? '<div class="istat ed"><input id="inc-tot" inputmode="decimal" autocomplete="off" enterkeyhint="done" data-m="' + m + '" value="' + (Math.round(t.i * 100) / 100).toString().replace(".", ",") + '"><span>Netto-Einnahmen · leer = automatisch</span></div>'
+          : '<button class="istat" data-act="incopen"><b class="pos">' + eur(t.i) + '</b><span>Einnahmen ✎' + (S.incov[m] != null ? " · selbst eingetragen" : "") + "</span></button>") + '<div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
       else if (isPlan(m)) h += '<p class="small muted">Geplant: feste Posten plus Schnitt der letzten 6 Monate.</p>';
-      if (editable && sh.inc) h += incEdit(m);
       ["out", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => { const key = ty + "|" + r.c, op = !!(sh.open && sh.open[key]);
@@ -874,17 +879,6 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   /* v12 (Wunsch des Besitzers): Einnahmen im Monatsblatt anpassen – Betrag nur für diesen Monat (`over`), ab diesem Monat
      (`changes`) oder eine einmalige Einnahme (fester Posten mit start = end, z. B. Weihnachtsgeld, das jedes Jahr anders ausfällt). */
-  function salRec(m) { const l = recs().filter(r => r.type === "in" && r.cat === "gehalt" && r.end !== r.start && active(r, m)); l.sort((x, y) => amountAt(y, m) - amountAt(x, m)); return l[0] || null; }
-  function incEdit(m) {
-    const r = salRec(m), once = recs().filter(x => x.type === "in" && x.end === x.start && x.start === m), mode = S.sheet.incMode || "from";
-    let h = '<div class="incbox"><div class="row" style="align-items:end"><label style="flex:1 1 120px">Netto-Gehalt ' + mshort(m) + '<input id="inc-sal" inputmode="decimal" autocomplete="off" value="' + (r ? String(amountAt(r, m)).replace(".", ",") : "") + '"></label>' +
-      '<div class="seg" role="group" aria-label="Gültig"><button data-act="incmode" data-id="from" aria-pressed="' + (mode === "from") + '">ab jetzt</button><button data-act="incmode" data-id="one" aria-pressed="' + (mode === "one") + '">nur ' + mshort(m) + "</button></div>" +
-      '<button class="primary" data-act="incsave" data-m="' + m + '">OK</button></div>';
-    h += once.map(x => '<div class="incone"><span>' + esc(x.name) + '</span><b class="pos">+' + eur(x.amount) + '</b><button class="ghost danger" data-act="incdel" data-id="' + esc(x.id) + '" aria-label="' + esc(x.name) + ' entfernen">✕</button></div>').join("");
-    h += S.sheet.incAdd ? '<div class="row" style="align-items:end"><label class="f2">Einmalzahlung<input id="inc-new-name" autocomplete="off" value="Weihnachtsgeld"></label><label class="f1">Betrag (€)<input id="inc-new-amt" inputmode="decimal" autocomplete="off"></label><button data-act="incadd" data-m="' + m + '">Hinzufügen</button></div>'
-      : '<button class="ghost" style="align-self:flex-start" data-act="incaddopen">+ Einmalzahlung (z. B. Weihnachtsgeld)</button>';
-    return h + "</div>";
-  }
   function openSheet() {
     let d = $("sheetov");
     if (!d) { d = document.createElement("div"); d.id = "sheetov"; d.className = "overlay"; d.setAttribute("role", "dialog"); d.setAttribute("aria-modal", "true"); d.innerHTML = '<div class="sheet" id="sheet"></div>'; document.body.appendChild(d); }
@@ -1197,30 +1191,7 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "sheetclose") { closeSheet(); }
     else if (a === "shm") { sheetMonth(+id, true); }
     else if (a === "cexp") { if (!S.sheet) return; S.sheet.open = S.sheet.open || {}; S.sheet.open[id] = !S.sheet.open[id]; const sc = $("sheet").scrollTop; refreshSheet(); $("sheet").scrollTop = sc; }
-    else if (a === "incopen") { if (!S.sheet) return; S.sheet.inc = !S.sheet.inc; refreshSheet(); if (S.sheet.inc) { const el = $("inc-sal"); if (el) el.focus(); } }
-    else if (a === "incmode") { S.sheet.incMode = id; press("incmode", id); }
-    else if (a === "incaddopen") { S.sheet.incAdd = true; refreshSheet(); const el = $("inc-new-amt"); if (el) el.focus(); }
-    else if (a === "incsave") {
-      const m = b.dataset.m, v = num($("inc-sal").value), r = salRec(m); if (!(v > 0)) { $("inc-sal").focus(); return; }
-      if (!r) put(rid("r"), { kind: "rec", name: "Gehalt", amount: v, type: "in", cat: "gehalt", every: 1, start: m, end: null, changes: [], note: "", example: false });
-      else {
-        const d = JSON.parse(JSON.stringify(r)); delete d.id;
-        if ((S.sheet.incMode || "from") === "one") { d.over = d.over || {}; d.over[m] = v; }
-        else {
-          if (d.over) { Object.keys(d.over).forEach(k => { if (mi(k) >= mi(m)) delete d.over[k]; }); if (!Object.keys(d.over).length) delete d.over; }
-          if (mi(m) <= mi(d.start)) d.amount = v; else { d.changes = (d.changes || []).filter(c => mi(c.from) < mi(m)); d.changes.push({ from: m, amount: v }); }
-        }
-        put(r.id, d);
-      }
-      S.sheet.inc = false; haptic(); renderAll();
-    }
-    else if (a === "incdel") { if (arm(b, "Sicher?")) { put(id, null); renderAll(); } }
-    else if (a === "incadd") {
-      const m = b.dataset.m, name = $("inc-new-name").value.trim() || "Einmalzahlung", v = num($("inc-new-amt").value);
-      if (!(v > 0)) { $("inc-new-amt").focus(); return; }
-      put(rid("r"), { kind: "rec", name, amount: v, type: "in", cat: "gehalt", every: 1, start: m, end: m, changes: [], note: "einmalig", example: false });
-      S.sheet.incAdd = false; haptic(); renderAll();
-    }
+    else if (a === "incopen") { if (!S.sheet) return; S.sheet.inc = true; refreshSheet(); const el = $("inc-tot"); if (el) { el.focus(); try { el.setSelectionRange(0, el.value.length); } catch (e) {} } }
     else if (a === "cty") { S.cty = id; renderSum(); }
     else if (a === "cunit") { S.cunit = id; renderSum(); }
     else if (a === "cper") { S.cper = id; renderSum(); }
@@ -1305,8 +1276,14 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "exclear") { if (arm(b, "Wirklich alle Beispiele entfernen?")) clearExamples(); }
   });
 
-  document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); });
-  document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("sheetov")) closeSheet(); if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches && ev.target.matches("circle.s")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+  document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); if (ev.target.id === "inc-tot") incSave(ev.target); });
+  function incSave(el) {
+    if (!S.sheet || !S.sheet.inc) return;
+    const m = el.dataset.m, raw = el.value.trim(), v = num(raw), o = Object.assign({}, S.incov);
+    if (raw === "") delete o[m]; else if (v != null && v >= 0) o[m] = Math.round(v * 100) / 100; else return;
+    S.sheet.inc = false; put("incover", Object.keys(o).length ? { kind: "incover", months: o } : null); haptic(); renderAll();
+  }
+  document.addEventListener("keydown", ev => { if (ev.key === "Enter" && ev.target.id === "inc-tot") { ev.preventDefault(); ev.target.blur(); return; } if (ev.key === "Escape" && $("sheetov")) closeSheet(); if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches && ev.target.matches("circle.s")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
   document.addEventListener("input", ev => { const ds = ev.target.dataset; if (ds.ch != null) { F.changes[+ds.ch][ds.k] = ev.target.value; return; } if (ev.target.id === "lx-extra") { S.extra = Math.max(0, num(ev.target.value) || 0); renderLoan(); } });
 
   /* ---------- App-Verhalten wie im Trainingslog ---------- */
