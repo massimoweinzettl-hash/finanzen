@@ -1,0 +1,35 @@
+FINANZEN – Web-App
+==================
+
+Adresse: https://massimoweinzettl-hash.github.io/finanzen/
+
+Auf dem iPhone installieren
+  Die Adresse in Safari öffnen (nicht in Chrome).
+  "Teilen" > "Zum Home-Bildschirm" > "Hinzufügen".
+  Die App ab jetzt über das Icon öffnen und erst dort Daten eintragen:
+  Safari und die installierte App speichern getrennt.
+
+WICHTIG
+-------
+- Deine Einträge liegen nur auf dem jeweiligen Gerät, nicht bei GitHub.
+  Über das Zahnrad oben links > "Sicherung speichern" regelmäßig ein Backup
+  machen (z. B. in iCloud Drive). Die App erinnert nach 14 Tagen.
+- Auf einem anderen Gerät dieselbe Adresse öffnen und die Sicherung über
+  das Zahnrad > "Sicherung einspielen" laden.
+- Updates: Beim Öffnen meldet die App "Update bereit". "Jetzt aktualisieren"
+  lädt die neue Fassung, "Später" wartet. Deine Daten bleiben erhalten.
+- Das Repository ist öffentlich: Jeder kann den Programmcode sehen und die
+  leere App öffnen, aber niemand deine Finanzdaten.
+
+WO FINDE ICH WAS?
+-----------------
+- Übersicht: Monat mit Einnahmen, Ausgaben, was übrig bleibt, Verlauf,
+  Ausgaben nach Kategorie, feste Posten des Monats.
+- Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
+  Prämie usw. mit Rhythmus; "Betrag ändert sich später" für
+  Gehaltserhöhungen (Stufenaufstieg, Tariferhöhung) oder Mieterhöhungen.
+- Buchungen: einzelne Ausgaben und Einnahmen.
+- Kredite: Restschuld, Rate, Zins, letzte Rate, Zinsen bis zum Ende,
+  Rechner für Sondertilgung. Raten zählen automatisch als Ausgabe.
+- Kategorien: eigene Kategorien, Beispieldaten.
+- Zahnrad: Sicherung speichern und einspielen, Version.
