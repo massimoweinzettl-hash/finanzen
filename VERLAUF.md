@@ -35,3 +35,4 @@ Repo ist öffentlich: hier nur technische Entscheidungen, keine persönlichen Da
 - v29: Saldo-Diagramm zeigt je Monat zwei Balken: Einnahmen (grün) und Ausgaben ohne Sparen (rot), Betrag darüber (ab 10.000 als „k“). Skala am 90-%-Wert, Ausreißer laufen oben an. Saldo steht weiter oben in der Kopfzeile. Spaltenbreite `SBW`.
 - v30: Kontostand-Block mit Linie „Girokonto am Monatsende“ (12 Monate zurück, 24 voraus). Rückblick = eingetragener Kontostand minus Monatssalden (`kontoBal`), Zukunft = `projBal`, gestrichelt. Kennzahlen: vor 12 Monaten, Ende laufender Monat, in 12 und 24 Monaten.
 - v31: Selbst eingetragenes Netto im laufenden Monat mit Kontoauszug: schon gebuchte Einnahmen bleiben, der Rest zählt als „kommt noch“ (fehlte sonst im Kontostand am Monatsende). Kontostand-Kasten zeigt den Rechenweg (`kontoWeg`): heute + kommt noch rein − geht noch ab (+ Folgemonate).
+- v32: Kontostand-Linie mit Beträgen alle 3 Monate (ab 1.000 als „k“).
