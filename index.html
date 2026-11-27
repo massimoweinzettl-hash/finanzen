@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" id="vpm" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Finanzen</title>
 <meta name="description" content="Einnahmen, Ausgaben, Fixkosten, Abos, Versicherungen und Kredite im Überblick.">
 <meta name="theme-color" content="#f1f3f7" media="(prefers-color-scheme: light)">
@@ -42,6 +42,19 @@ body { margin: 0 }
   --accent: #8ea5ff; --accent-ink: #0c1124; --accent-soft: #1d2647;
   --good: #62d39b; --good-soft: #143325; --warn: #e8b85a; --warn-soft: #3a2c0c; --bad: #ff8a80; color-scheme: dark }
 * { box-sizing: border-box }
+/* App-Gefühl wie im Trainingslog (Wunsch des Besitzers): Oberfläche nicht markierbar, kein Kopier-Menü beim langen Drücken,
+   kein grauer Tipp-Blitz, kein Zoomen per Fingergeste; Eingabefelder bleiben markierbar. */
+body { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none }
+input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default }
+button, select, input { touch-action: manipulation } body { touch-action: pan-x pan-y }
+button:disabled { opacity: .4; cursor: default }
+.tabclip { overflow-x: clip; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-inline: max(16px, env(safe-area-inset-left, 0px)); display: flex; flex-direction: column; gap: 16px }
+section.tab { touch-action: pan-y }
+.sscroll { touch-action: pan-x pan-y }
+.tabs button { position: relative }
+.hapsw { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; appearance: none; -webkit-appearance: none; cursor: pointer }
+#rotnote { display: none }
+@media (orientation: landscape) and (max-height: 520px) { #rotnote { display: flex; position: fixed; inset: 0; z-index: 200; background: var(--bg); color: var(--ink); align-items: center; justify-content: center; flex-direction: column; gap: 10px; font-weight: 650; text-align: center; padding: 20px } #rotnote svg { opacity: .8 } }
 [hidden] { display: none !important }
 td.act { width: 1%; padding-left: 8px }
 td.act button { display: block; width: 100%; margin: 3px 0 }
@@ -137,7 +150,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .yhead .month { gap: 4px } .yhead .month b { font-size: 16px; min-width: 3em; text-align: center } .yhead .month button { padding: 6px 12px }
 .sbars { position: relative; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; height: 200px; margin-top: 4px }
 .sb { position: relative; height: 100%; border: 0; background: none; padding: 0; border-radius: 6px; min-width: 0 }
-.sb[aria-current="true"] { background: var(--accent-soft) }
+.sbars .sb[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--accent) }
 .sb i { position: absolute; left: 16%; right: 16%; background: var(--good); border-radius: 4px 4px 0 0 }
 .sb i.n { background: var(--bad); border-radius: 0 0 4px 4px }
 .sb.plan i { opacity: .4 }
@@ -146,11 +159,25 @@ td button { padding: 4px 8px; font-size: 13px }
 .sbl .cur { color: var(--ink); font-weight: 600 }
 .sscroll { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: -4px; padding-inline: 4px }
 .sscroll::-webkit-scrollbar { display: none }
-.sinner { position: relative }
+.sinner { position: relative; width: max-content; padding: 16px calc(50% - 15px) 0 }
+.sscroll { scroll-snap-type: x mandatory } .sscroll .sb { scroll-snap-align: center }
+.swrap { position: relative }
+.swrap::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 34px; width: 0; border-left: 1.5px solid var(--accent); opacity: .5; pointer-events: none }
+.sb.sel { background: var(--accent-soft) }
+.sbv { position: absolute; left: -6px; right: -6px; text-align: center; font-size: 9.5px; line-height: 12px; color: var(--muted); white-space: nowrap; letter-spacing: -.02em; pointer-events: none }
+.sb.sel .sbv { color: var(--ink); font-weight: 600 }
+.sread { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 64px }
+.sread > div { display: flex; flex-direction: column; min-width: 0 }
+.sread .sm { font-size: 13px; color: var(--muted); font-weight: 600 } .sread b { font: 600 24px var(--display) } .sread .si { font-size: 12px; color: var(--muted) }
 .sbars { gap: 4px; height: 200px }
 .sbl { gap: 4px }
 .sbl span { white-space: nowrap; line-height: 1.3 } .sbl b { display: block; font-weight: 600; color: var(--muted) }
 .snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; opacity: .6 }
+.spr { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; height: 110px; border-bottom: 1px solid var(--line) }
+.spr .sb i { border-radius: 4px 4px 0 0 }
+.spr .spv { position: absolute; left: 0; right: 0; top: 2px; font-size: 9.5px; color: var(--muted); text-align: center; white-space: nowrap; letter-spacing: -.02em }
+.sankey { width: 100%; height: auto; display: block }
+.sankey .sk { font: 11px var(--body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round }
 .mlist { display: flex; flex-direction: column }
 .mrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 10px 4px; font-weight: 400; width: 100% }
 .mrow:last-child { border-bottom: 0 }
@@ -188,20 +215,21 @@ td button { padding: 4px 8px; font-size: 13px }
 @media (prefers-reduced-motion: no-preference) { button { transition: background-color .12s, border-color .12s } .bar .tr i, .cols .c i { transition: width .3s, height .3s } }
 </style>
 </head>
-<body>
+<body><div id="rotnote" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="15" y="5" width="18" height="34" rx="4"/><path d="M21 33h6"/><path d="M38 20a14 14 0 0 1 0 12M42 17a19 19 0 0 1 0 18" opacity=".5"/></svg>Bitte das Handy hochkant halten.</div>
 <div class="wrap">
   <div class="top">
     <div class="tl"><button class="gear" data-act="more" aria-label="Einstellungen und Sicherung"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><h1>Finanzen</h1></div>
     <span class="sync"><span id="sync" role="status">Lade deine Daten …</span> <span class="ver" id="ver"></span></span>
   </div>
   <div class="tabs" role="tablist">
-    <button role="tab" data-tab="sum" aria-selected="true">Übersicht</button>
-    <button role="tab" data-tab="bud" aria-selected="false">Budgets</button>
-    <button role="tab" data-tab="tx" aria-selected="false">Transaktionen</button>
+    <button role="tab" data-tab="sum" aria-selected="true">Übersicht<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="bud" aria-selected="false">Budgets<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
+    <button role="tab" data-tab="tx" aria-selected="false">Transaktionen<input type="checkbox" switch class="hapsw" tabindex="-1" aria-hidden="true"></button>
   </div>
   <div id="notice" class="note" hidden></div>
   <div id="bkwarn" class="note" hidden></div>
 
+  <div class="tabclip">
   <section class="tab" id="tab-sum"><p class="empty">Hier erscheint deine Monatsübersicht, sobald deine Daten geladen sind.</p></section>
 
   <section class="tab" id="tab-bud" hidden>
@@ -306,6 +334,7 @@ td button { padding: 4px 8px; font-size: 13px }
     </div>
     <div id="loanlist" style="display:flex;flex-direction:column;gap:16px"></div>
   </section>
+  </div>
 
 </div>
 
@@ -337,14 +366,14 @@ td button { padding: 4px 8px; font-size: 13px }
     { id: "mobil", name: "Mobilität", type: "out" }, { id: "freizeit", name: "Freizeit & Ausgehen", type: "out" }, { id: "shop", name: "Einkäufe & Shopping", type: "out" }, { id: "gesund", name: "Gesundheit", type: "out" }, { id: "out_sonst", name: "Sonstiges", type: "out" }
   ];
 
-  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, tab: "sum", bsub: "lim", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", extra: 0 };
+  const S = { ready: false, rec: {}, tx: {}, loans: {}, custom: [], budgets: {}, tab: "sum", bsub: "lim", month: curMonth(), year: curMonth().slice(0, 4), cty: "out", cunit: "eur", cper: "m", sper: "m", sunit: "eur", extra: 0 };
   const F = { changes: [], rtype: "out", redit: null, ttype: "out", tedit: null, ledit: null };
 
   /* ---------- Speicher: nur auf diesem Gerät (wie im Trainingslog) ----------
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 8;
+  var APP_VERSION = 11;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -356,9 +385,10 @@ td button { padding: 4px 8px; font-size: 13px }
       else if (d.data && d.data.kind === "tx") t[d.id] = d.data;
       else if (d.data && d.data.kind === "loan") l[d.id] = d.data;
     });
-    S.rec = r; S.tx = t; S.loans = l; S.custom = c; S.budgets = bu;
+    S.rec = r; S.tx = t; S.loans = l; S.custom = c; S.budgets = bu; EST = null;
   }
   function localApply(id, data) {
+    EST = null;
     if (id === "settings") S.custom = data ? data.cats : [];
     else if (id === "budgets") S.budgets = data ? data.limits : {};
     else { const box = id.charAt(0) === "r" ? S.rec : id.charAt(0) === "l" ? S.loans : S.tx; if (data) box[id] = data; else delete box[id]; }
@@ -566,7 +596,7 @@ td button { padding: 4px 8px; font-size: 13px }
   }
   const perMonth = (r, m) => amountAt(r, m || curMonth()) / (r.every || 1);
   const dueMonths = r => { const s0 = mi(r.start) % 12, n = r.every || 1, out = []; for (let j = 0; j < 12; j += n) out.push((s0 + j) % 12); return out.sort((a, b) => a - b); };
-  const yearSum = (y, type) => { let t = 0; for (let j = 1; j <= 12; j++) monthItems(y + "-" + pad(j)).forEach(x => { if (x.src !== "tx" && x.type === type) t += x.amount; }); return t; };
+  const yearSum = (y, type) => { let t = 0; for (let j = 1; j <= 12; j++) monthItems(y + "-" + pad(j)).forEach(x => { if ((x.src === "rec" || x.src === "loan") && x.type === type) t += x.amount; }); return t; };
   const loans = () => Object.keys(S.loans).map(id => Object.assign({ id }, S.loans[id]));
   /* Tilgungsplan ab dem Monat der Restschuld: Zinsen monatlich = Restschuld × Zins / 12 */
   /* Finanzierung mit Schlussrate: feste Raten bis zum Vormonat, im Monat `end` die Schlussrate. Restschuld = Barwert
@@ -596,8 +626,28 @@ td button { padding: 4px 8px; font-size: 13px }
   /* Monate mit eingespieltem Kontoauszug: dort zählen die echten Buchungen, feste Posten und Kreditraten nicht zusätzlich
      (Wunsch des Besitzers: nichts doppelt). Für Monate ohne Kontoauszug planen die festen Posten. */
   const bankMonths = () => { const o = {}; txs().forEach(t => { if (t.src === "bank") o[t.date.slice(0, 7)] = 1; }); return o; };
+  /* Geschätzte Alltagsausgaben und weitere Einnahmen für kommende Monate (Wunsch des Besitzers): Schnitt der letzten
+     6 abgeschlossenen Monate je Art + Kategorie, aber nur Buchungen, die zu keinem festen Posten / keiner Kreditrate
+     passen (gleiche Art, Betrag ±5 %, mind. 1 €; Rhythmus des Postens, Startmonat egal – neue Posten waren vorher evtl. schon da). */
+  let EST = null;
+  function estimates() {
+    if (EST && EST.m === curMonth()) return EST.v;
+    const kc = mi(curMonth()), sum = {}, v = {};
+    EST = { m: curMonth(), v };
+    for (let k = kc - 6; k < kc; k++) {
+      const m = im(k), pool = monthItems(m).filter(x => x.src === "tx"), used = {};
+      const due = [];
+      recs().forEach(r => { const n = r.every || 1; if (((k - mi(r.start)) % n + n) % n === 0) due.push({ type: r.type, a: [amountAt(r, m), amountAt(r, curMonth())] }); });
+      loans().forEach(l => { due.push({ type: "out", a: [l.rate] }); });
+      due.forEach(d => { const hit = pool.find(x => !used[x.id] && x.type === d.type && d.a.some(a => Math.abs(x.amount - a) <= Math.max(1, a * 0.05))); if (hit) used[hit.id] = 1; });
+      pool.forEach(x => { if (used[x.id]) return; const key = x.type + "|" + x.cat; sum[key] = (sum[key] || 0) + x.amount; });
+    }
+    Object.keys(sum).forEach(key => { const e = sum[key] / 6; if (e >= 1) v[key] = Math.round(e * 100) / 100; });
+    return v;
+  }
   function monthItems(m) {
     const out = [];
+    if (mi(m) > mi(curMonth())) { const e = estimates(); Object.keys(e).forEach(key => { const [type, c] = key.split("|"); out.push({ src: "est", id: "est-" + key, name: type === "in" ? "Weitere Einnahmen (geschätzt)" : "Alltag (geschätzt)", amount: e[key], type, cat: c }); }); }
     const bank = bankMonths()[m];
     txs().forEach(t => { if (t.date.slice(0, 7) === m) out.push({ src: "tx", id: t.id, name: t.name, amount: t.amount, type: t.type, cat: t.cat, date: t.date, example: t.example, bank: t.src === "bank" }); });
     /* Abgeschlossener Monat mit Kontoauszug: nur echte Buchungen. */
@@ -668,16 +718,18 @@ td button { padding: 4px 8px; font-size: 13px }
     const st = sm.map(totals), pmax = Math.max(0, ...st.map(t => t.s)), nmax = Math.max(0, ...st.map(t => -t.s)), span = Math.max(1, pmax + nmax), zero = pmax / span * 100;
     let pb = 0, fw = 0; sm.forEach((m, j) => { const k = mi(m); if (k < kc && k >= kc - 12) pb += st[j].s; if (k > kc) fw += st[j].s; });
     const sg = v => '<b class="' + (v < 0 ? "neg" : "pos") + '">' + (v > 0 ? "+" : "") + eur(v) + "</b>";
-    let h = '<div class="block"><h2>Saldo pro Monat</h2><div class="sscroll" id="sscroll"><div class="sinner" style="width:' + sm.length * 34 + 'px"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
+    S.sb = { sm, st };
+    if (!S.sbSel || sm.indexOf(S.sbSel) < 0) S.sbSel = cm;
+    let h = '<div class="block"><h2>Saldo pro Monat</h2><div class="sread" id="sread">' + sreadHtml(S.sbSel) + '</div><div class="swrap"><div class="sscroll" id="sscroll"><div class="sinner"><div class="sbars" style="grid-template-columns:repeat(' + sm.length + ',30px)">';
     h += sm.map((m, j) => {
       const t = st[j], none = !t.i && !t.o, ht = Math.max(none ? 0 : 1.2, Math.abs(t.s) / span * 100), neg = t.s < 0;
-      return '<button class="sb' + (isPlan(m) ? " plan" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
-        (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i>') + "</button>";
+      return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
+        (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + Math.round(Math.abs(t.s)) + "</span>") + "</button>";
     }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * 34 - 2) + 'px"></span></div>' +
-      '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div>" +
+      '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',30px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
-      '<p class="small muted">Nach rechts wischen für die Vergangenheit, Balken antippen für den Überblick des Monats. Kommende Monate sind mit deinen festen Posten und Kreditraten geplant.</p></div>';
+      '<p class="small muted">Kommende Monate: feste Posten plus Schnitt der letzten 6 Monate.</p></div>';
     // Kategorien
     const ty = S.cty, cs = catSums(perMonths(), ty), rows = cs.rows, tot = cs.tot;
     h += '<div class="block"><h2>Kategorien</h2><div class="ctl"><div class="seg" role="group" aria-label="Art"><button data-act="cty" data-id="out" aria-pressed="' + (ty === "out") + '">Ausgaben</button><button data-act="cty" data-id="in" aria-pressed="' + (ty === "in") + '">Einnahmen</button></div>' +
@@ -687,17 +739,33 @@ td button { padding: 4px 8px; font-size: 13px }
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
     else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
-    h += "</div>";
+    h += "</div>" + sankeyBlock();
     if (hasExamples()) h += '<p class="note">Du siehst gerade Beispieldaten (markiert mit „Beispiel“), keine echten Werte. <button class="ghost" data-act="exclear">Beispiele entfernen</button></p>';
     const old = $("sscroll"), keep = old && S.sbMoved ? old.scrollLeft : null;
     el.innerHTML = h;
     if (keep != null) $("sscroll").scrollLeft = keep; else posBars();
-    $("sscroll").addEventListener("scroll", () => { if (!S.sbAuto) S.sbMoved = true; S.sbAuto = false; }, { passive: true });
+    let raf = 0;
+    $("sscroll").addEventListener("scroll", () => { if (!S.sbAuto) S.sbMoved = true; S.sbAuto = false; if (!raf) raf = requestAnimationFrame(() => { raf = 0; sbPick(); }); }, { passive: true });
+  }
+  /* Ausgewählter Monat = Balken unter der Mitte; Anzeige oben zeigt Saldo, Einnahmen und Ausgaben dieses Monats */
+  function sreadHtml(m) {
+    const j = S.sb ? S.sb.sm.indexOf(m) : -1, t = j >= 0 ? S.sb.st[j] : totals(m), none = !t.i && !t.o;
+    return '<div><span class="sm">' + mname(m) + (isPlan(m) ? ' <span class="tag plan">geplant</span>' : m === curMonth() ? ' <span class="tag plan">läuft</span>' : "") + '</span><b class="' + (none ? "" : t.s < 0 ? "neg" : "pos") + '">' + (none ? "–" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b><span class="si">' + (none ? "keine Daten" : "+" + eur(t.i) + " · −" + eur(t.o)) + '</span></div><button class="ghost" data-act="mopen" data-id="' + m + '">Überblick ›</button>';
+  }
+  function sbPick() {
+    const sc = $("sscroll"); if (!sc || !sc.clientWidth) return;
+    const mid = sc.getBoundingClientRect().left + sc.clientWidth / 2;
+    let best = null, bd = 1e9; sc.querySelectorAll(".sb").forEach(b => { const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b; } });
+    if (!best || best.dataset.id === S.sbSel) return;
+    S.sbSel = best.dataset.id; sc.querySelectorAll(".sb.sel").forEach(b => b.classList.remove("sel")); best.classList.add("sel");
+    $("sread").innerHTML = sreadHtml(S.sbSel); haptic();
   }
   /* Laufender Monat etwa bei zwei Dritteln, damit Rückblick und Zukunft zu sehen sind */
   function posBars() {
     const sc = $("sscroll"), cur = sc && sc.querySelector('.sb[aria-current="true"]'); if (!sc || !cur || !sc.clientWidth) return;
-    S.sbAuto = true; sc.scrollLeft = Math.max(0, cur.offsetLeft - sc.clientWidth * 0.62);
+    const sel = sc.querySelector('.sb[data-id="' + S.sbSel + '"]') || cur;
+    const r = sel.getBoundingClientRect(), rs = sc.getBoundingClientRect();
+    S.sbAuto = true; sc.scrollLeft = Math.max(0, sc.scrollLeft + (r.left + r.width / 2) - (rs.left + sc.clientWidth / 2));
   }
   function firstMonth() {
     let k = mi(curMonth());
@@ -706,10 +774,53 @@ td button { padding: 4px 8px; font-size: 13px }
     return k;
   }
 
+  /* ---------- Geldfluss (Sankey): Einnahmen → Budget → Ausgaben + Übrig, gleicher Zeitraum wie Kategorien ---------- */
+  function sankeyBlock() {
+    const yr = S.sper === "y", ms = yr ? [...Array(12)].map((_, j) => S.year + "-" + pad(j + 1)) : [S.month], lab = yr ? "Jahr " + S.year : mname(S.month);
+    const ci = catSums(ms, "in"), co = catSums(ms, "out"), ti = ci.tot, to = co.tot, base = ti || to;
+    let h = '<div class="block"><h2>Geldfluss</h2><div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="sper" data-id="m" aria-pressed="' + !yr + '">Monat</button><button data-act="sper" data-id="y" aria-pressed="' + yr + '">Jahr</button></div>' +
+      '<div class="seg" role="group" aria-label="Einheit"><button data-act="sunit" data-id="eur" aria-pressed="' + (S.sunit !== "pct") + '">€</button><button data-act="sunit" data-id="pct" aria-pressed="' + (S.sunit === "pct") + '">%</button></div></div>' +
+      '<div class="month"><button data-act="' + (yr ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + lab + '</b><button data-act="' + (yr ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div>';
+    if (!ti && !to) return h + '<p class="empty">Keine Einträge in diesem Zeitraum.</p></div>';
+    // Sparrate: Sparen & Anlegen plus was übrig bleibt, im Verhältnis zu den Einnahmen
+    const spar = (co.rows.find(r => r.c === "sparen") || { v: 0 }).v, rest = ti - to;
+    h += '<div class="stats"><div><b>' + (S.sunit === "pct" ? pct(spar, base) : eur(spar)) + '</b><span>Sparen &amp; Anlegen</span></div><div><b class="' + (rest < 0 ? "neg" : "pos") + '">' + (S.sunit === "pct" ? (rest < 0 ? "−" : "") + pct(Math.abs(rest), base) : (rest > 0 ? "+" : "") + eur(rest)) + '</b><span>' + (rest < 0 ? "mehr ausgegeben als eingenommen" : "übrig") + '</span></div><div><b>' + (ti > 0 ? Math.round((spar + rest) / ti * 100) + " %" : "–") + '</b><span>Sparquote (Sparen + übrig)</span></div></div>';
+    if (yr) {
+      const sp = ms.map(m => { let v = 0, inc = 0; monthItems(m).forEach(x => { if (x.type === "out" && x.cat === "sparen") v += x.amount; if (x.type === "in") inc += x.amount; }); return { m, v, inc }; });
+      const mx = Math.max(S.sunit === "pct" ? 0.01 : 1, ...sp.map(x => S.sunit === "pct" ? (x.inc ? x.v / x.inc : 0) : x.v));
+      h += '<h3>Sparrate pro Monat</h3><div class="spr">' + sp.map(x => { const val = S.sunit === "pct" ? (x.inc ? x.v / x.inc : 0) : x.v, t = S.sunit === "pct" ? (x.inc ? Math.round(x.v / x.inc * 100) + "%" : "–") : (x.v ? Math.round(x.v) + "" : "0");
+        return '<button class="sb' + (isPlan(x.m) ? " plan" : "") + '" data-act="copen" data-id="sparen" data-ty="out" data-m="' + x.m + '" aria-label="' + mname(x.m) + ": " + eur(x.v) + '"><span class="spv">' + t + '</span><i style="bottom:0;height:' + (val / mx * 78).toFixed(1) + '%;background:var(--c6)"></i></button>'; }).join("") + '</div><div class="sbl" style="grid-template-columns:repeat(12,minmax(0,1fr))">' + ms.map(m => "<span>" + mshort(m) + "</span>").join("") + "</div>" +
+        '<p class="small muted">' + (S.sunit === "pct" ? "In % der Einnahmen des Monats." : "In € pro Monat.") + " Blasse Balken sind geplant.</p>";
+    }
+    const L = ci.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "in" })), R = co.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "out" }));
+    if (ti > to) R.push({ v: ti - to, col: "var(--good)", name: "Übrig" }); else if (to > ti) L.push({ v: to - ti, col: "var(--bad)", name: "Fehlbetrag" });
+    const tot = Math.max(ti, to), W = 360, NW = 8, MINS = 17, G = 3, cx = 150;
+    const usable = Math.max(200, R.length * 22), k = usable / tot;
+    const lay = list => { let y = 0; list.forEach(n => { n.h = Math.max(1.5, n.v * k); n.y = y; y += Math.max(n.h, MINS) + G; }); return y; };
+    const HL = lay(L), HR = lay(R), H = Math.max(HL, HR, tot * k) + 4, cy = (H - tot * k) / 2;
+    const band = (x0, y0, h0, x1, y1, h1, col) => { const m = (x0 + x1) / 2; return '<path d="M' + x0 + "," + y0 + "C" + m + "," + y0 + " " + m + "," + y1 + " " + x1 + "," + y1 + "L" + x1 + "," + (y1 + h1) + "C" + m + "," + (y1 + h1) + " " + m + "," + (y0 + h0) + " " + x0 + "," + (y0 + h0) + 'Z" fill="' + col + '" opacity=".32"/>'; };
+    let sv = '<svg class="sankey" viewBox="0 0 ' + W + " " + H.toFixed(0) + '" role="img" aria-label="Geldfluss von Einnahmen zu Ausgaben">';
+    let off = 0;
+    L.forEach(n => { const hh = n.v * k; sv += band(NW, n.y, n.h, cx, cy + off, hh, n.col); off += hh; });
+    off = 0;
+    R.forEach(n => { const hh = n.v * k; sv += band(cx + NW, cy + off, hh, W - NW, n.y, n.h, n.col); off += hh; });
+    sv += '<rect x="' + cx + '" y="' + cy.toFixed(1) + '" width="' + NW + '" height="' + (tot * k).toFixed(1) + '" rx="2" fill="var(--muted)"/>';
+    const node = (n, x, anchor, tx) => {
+      const act = n.c ? ' data-act="copen" data-id="' + esc(n.c) + '" data-ty="' + n.ty + '" style="cursor:pointer"' : "";
+      const val = S.sunit === "pct" ? pct(n.v, base) : eur0(n.v);
+      return "<g" + act + '><rect x="' + x + '" y="' + n.y.toFixed(1) + '" width="' + NW + '" height="' + n.h.toFixed(1) + '" rx="2" fill="' + n.col + '"/>' +
+        '<text class="sk" x="' + tx + '" y="' + (n.y + Math.max(n.h, MINS) / 2 + 4).toFixed(1) + '" text-anchor="' + anchor + '"><tspan font-weight="600">' + esc(n.name.length > 24 ? n.name.slice(0, 22) + "…" : n.name) + "</tspan> " + val + "<title>" + esc(n.name) + ": " + eur(n.v) + "</title></text></g>";
+    };
+    L.forEach(n => { sv += node(n, 0, "start", NW + 5); });
+    R.forEach(n => { sv += node(n, W - NW, "end", W - NW - 5); });
+    sv += "</svg>";
+    return h + sv + '<p class="small muted">Einnahmen ' + eur(ti) + " · Ausgaben " + eur(to) + (S.sunit === "pct" ? " · % = Anteil an den Einnahmen" : "") + ". Kategorie antippen für alle Einträge.</p></div>";
+  }
+
   /* ---------- Blatt (Monatsüberblick / Kategorie) ---------- */
   function itemRow(x, showCat) {
     const when = x.date ? dfmt(x.date) : mshort(x.m || "");
-    const sub = [showCat ? catName(x.cat) : null, x.src === "loan" ? "Kreditrate" : x.src === "rec" ? "fester Posten" : x.bank ? "Konto" : null, x.open ? "kommt noch" : x.src !== "tx" && x.m && isPlan(x.m) ? "geplant" : null].filter(Boolean).join(" · ");
+    const sub = [showCat ? catName(x.cat) : null, x.src === "loan" ? "Kreditrate" : x.src === "rec" ? "fester Posten" : x.src === "est" ? "Schnitt der letzten 6 Monate" : x.bank ? "Konto" : null, x.open ? "kommt noch" : x.src !== "tx" && x.m && isPlan(x.m) ? "geplant" : null].filter(Boolean).join(" · ");
     return "<tr><td class=\"small muted\" style=\"white-space:nowrap\">" + when + "</td><td>" + esc(x.name || catName(x.cat)) + exTag(x) + (sub ? '<span class="sub">' + esc(sub) + "</span>" : "") + '</td><td class="r ' + (x.type === "in" ? "pos" : "") + '">' + sgn(x.amount, x.type) + "</td></tr>";
   }
   function sheetHtml() {
@@ -719,7 +830,7 @@ td button { padding: 4px 8px; font-size: 13px }
       let h = '<div class="shead"><h2>' + mname(m) + '</h2><button data-act="sheetclose">Schließen</button></div>' +
         '<div class="stats"><div><b class="pos">' + eur(t.i) + '</b><span>Einnahmen</span></div><div><b>' + eur(t.o) + '</b><span>Ausgaben</span></div><div><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (t.s > 0 ? "+" : "") + eur(t.s) + '</b><span>Saldo</span></div><div><b>' + (rate == null ? "–" : Math.round(rate) + " %") + "</b><span>vom Einkommen übrig</span></div></div>";
       if (bankMonths()[m]) h += '<p class="small muted">' + (mi(m) < mi(curMonth()) ? "Echte Buchungen aus dem Kontoauszug." : "Echte Buchungen aus dem Kontoauszug, dazu feste Posten, die noch nicht abgebucht wurden („kommt noch“).") + "</p>";
-      else if (isPlan(m)) h += '<p class="small muted">Geplant aus deinen festen Posten und Kreditraten.</p>';
+      else if (isPlan(m)) h += '<p class="small muted">Geplant aus deinen festen Posten, Kreditraten und geschätzten Alltagsausgaben (Schnitt der letzten 6 Monate).</p>';
       ["out", "in"].forEach(ty => {
         const cs = catSums([m], ty); if (!cs.rows.length) return;
         h += '<div class="sec"><h3>' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " nach Kategorie</h3><div class=\"clist\">" + cs.rows.map(r => '<button class="crow" data-act="copen" data-id="' + esc(r.c) + '" data-ty="' + ty + '" data-m="' + m + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + pct(r.v, cs.tot) + '</small></span><span class="v">' + eur(r.v) + "</span></button>").join("") + "</div></div>";
@@ -1019,6 +1130,8 @@ td button { padding: 4px 8px; font-size: 13px }
     else if (a === "cty") { S.cty = id; renderSum(); }
     else if (a === "cunit") { S.cunit = id; renderSum(); }
     else if (a === "cper") { S.cper = id; renderSum(); }
+    else if (a === "sper") { S.sper = id; renderSum(); }
+    else if (a === "sunit") { S.sunit = id; renderSum(); }
     else if (a === "bsub") { S.bsub = id; showTab("bud"); }
     else if (a === "gosub") { showTab(id); }
     else if (a === "bsave") {
@@ -1101,6 +1214,72 @@ td button { padding: 4px 8px; font-size: 13px }
   document.addEventListener("change", ev => { if (ev.target.id === "bf-cat") budHint(); });
   document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("sheetov")) closeSheet(); if ((ev.key === "Enter" || ev.key === " ") && ev.target.matches && ev.target.matches("circle.s")) { ev.preventDefault(); ev.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
   document.addEventListener("input", ev => { const ds = ev.target.dataset; if (ds.ch != null) { F.changes[+ds.ch][ds.k] = ev.target.value; return; } if (ev.target.id === "lx-extra") { S.extra = Math.max(0, num(ev.target.value) || 0); renderLoan(); } });
+
+  /* ---------- App-Verhalten wie im Trainingslog ---------- */
+  /* Zoomen aus: iOS übergeht user-scalable=no in Safari, daher die Fingergesten abfangen. */
+  ["gesturestart", "gesturechange"].forEach(e => document.addEventListener(e, ev => ev.preventDefault(), { passive: false }));
+  /* Zahlenfelder beim Antippen ganz markieren, damit die Eingabe den vorhandenen Wert ersetzt (nach dem ersten Tippen nicht erneut). */
+  let numSel = null;
+  document.addEventListener("focusin", ev => {
+    const t = ev.target, md = t && t.getAttribute && t.getAttribute("inputmode");
+    if (!(t.tagName === "INPUT" && (md === "decimal" || md === "numeric") && !t.readOnly && t.value)) return;
+    numSel = t; const v0 = t.value, sel = () => { if (document.activeElement === t && t.value === v0) try { t.setSelectionRange(0, t.value.length); } catch (e) {} };
+    sel(); setTimeout(sel, 0); setTimeout(() => { if (numSel === t) numSel = null; }, 600);
+  });
+  document.addEventListener("mouseup", ev => { if (numSel && ev.target === numSel) { ev.preventDefault(); numSel = null; } });
+  /* Haptik: Android über vibrate, iPhone über einen versteckten Schalter (System-Klick, ab iOS 18). In den Reitern liegt der Schalter direkt im Knopf. */
+  let HAPT = null;
+  function haptic() {
+    try { if (navigator.vibrate && navigator.vibrate(15)) return; } catch (e) {}
+    try {
+      if (!HAPT) { HAPT = document.createElement("label"); HAPT.setAttribute("aria-hidden", "true"); HAPT.style.cssText = "position:fixed;left:-100px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none";
+        const cb = document.createElement("input"); cb.type = "checkbox"; cb.setAttribute("switch", ""); cb.tabIndex = -1; HAPT.appendChild(cb); document.body.appendChild(HAPT); }
+      HAPT.click();
+    } catch (e) {}
+  }
+  const HAPACTS = { rsave: 1, tsave: 1, lsave: 1, bsave: 1, bankgo: 1 };
+  document.addEventListener("click", ev => { const b = ev.target.closest && ev.target.closest("button[data-act]"); if (b && HAPACTS[b.dataset.act]) haptic(); }, true);
+  /* Wischen zwischen den Reitern (wie im Trainingslog) */
+  const TABS = ["sum", "bud", "tx"]; let SW = null;
+  const swBlocked = el => {
+    if (document.querySelector(".overlay")) return true;
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(n.tagName) || n.classList.contains("tabs")) return true;
+      if (n.scrollWidth > n.clientWidth + 2) { const ox = getComputedStyle(n).overflowX; if (ox === "auto" || ox === "scroll") return true; }
+    }
+    return false;
+  };
+  document.addEventListener("touchstart", ev => {
+    SW = null; if (!S.ready || ev.touches.length !== 1) return;
+    const tc = ev.touches[0], wv = window.innerWidth; if (tc.clientX < 18 || tc.clientX > wv - 18) return;
+    if (swBlocked(ev.target)) return;
+    SW = { x: tc.clientX, y: tc.clientY, t: Date.now(), dir: 0, dx: 0, el: $("tab-" + S.tab) };
+  }, { passive: true });
+  document.addEventListener("touchmove", ev => {
+    if (!SW || ev.touches.length !== 1) return;
+    const tc = ev.touches[0], dx = tc.clientX - SW.x, dy = tc.clientY - SW.y;
+    if (!SW.dir) { if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; SW.dir = Math.abs(dx) > Math.abs(dy) * 1.3 ? 1 : -1; }
+    if (SW.dir < 0) return;
+    const i = TABS.indexOf(S.tab), edge = (dx > 0 && i === 0) || (dx < 0 && i === TABS.length - 1);
+    SW.dx = dx; SW.el.style.transition = "none"; SW.el.style.transform = "translateX(" + (edge ? dx / 4 : dx) + "px)"; SW.el.style.opacity = String(1 - Math.min(0.4, Math.abs(dx) / window.innerWidth * 0.6));
+  }, { passive: true });
+  document.addEventListener("touchend", () => {
+    if (!SW || SW.dir !== 1) { SW = null; return; }
+    const s = SW, el = s.el, w = window.innerWidth, i = TABS.indexOf(S.tab), fast = Math.abs(s.dx) > 50 && Date.now() - s.t < 300;
+    const to = (Math.abs(s.dx) > w / 3 || fast) ? i + (s.dx < 0 ? 1 : -1) : i; SW = null;
+    const reset = e => { e.style.transition = ""; e.style.transform = ""; e.style.opacity = ""; };
+    if (to === i || to < 0 || to >= TABS.length) { el.style.transition = "transform .22s ease, opacity .22s"; el.style.transform = ""; el.style.opacity = ""; setTimeout(() => reset(el), 240); return; }
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { reset(el); showTab(TABS[to]); return; }
+    const sg = s.dx < 0 ? -1 : 1;
+    el.style.transition = "transform .16s ease-in, opacity .16s"; el.style.transform = "translateX(" + sg * w + "px)"; el.style.opacity = "0";
+    setTimeout(() => {
+      reset(el); showTab(TABS[to]);
+      const ne = $("tab-" + TABS[to]); ne.style.transition = "none"; ne.style.transform = "translateX(" + (-sg * w * 0.35) + "px)"; ne.style.opacity = "0";
+      void ne.offsetWidth; ne.style.transition = "transform .2s ease-out, opacity .2s"; ne.style.transform = ""; ne.style.opacity = "";
+      setTimeout(() => reset(ne), 230);
+    }, 160);
+  });
+  document.addEventListener("touchcancel", () => { if (SW && SW.el) { SW.el.style.transform = ""; SW.el.style.opacity = ""; } SW = null; });
 
   restoreForms();
   try { const st = localStorage.getItem("finanzen-tab"); if (st) showTab(st); } catch (e) {}

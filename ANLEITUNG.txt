@@ -27,7 +27,9 @@ WO FINDE ICH WAS?
   Zukunft (Balken antippen = Überblick mit Einnahmen,
   Ausgaben und Kategorien), darunter Kategorien als Kuchendiagramm, umschaltbar
   Ausgaben/Einnahmen, € oder %, Monat oder Jahr. Kategorie antippen zeigt alle
-  Einträge darin.
+  Einträge darin. Geldfluss (Sankey): Einnahmen → Ausgaben, Monat/Jahr, € / %,
+  mit Sparquote und Sparrate pro Monat. Kommende Monate schätzen Alltagsausgaben
+  aus dem Schnitt der letzten 6 Monate.
 - Budgets: Monatslimits pro Kategorie (z. B. Shopping 150 €) mit Balken.
   Darunter umschaltbar:
   - Fix & Abos: Gehalt, Miete, Versicherungen, Abos, Jahressonderzahlung,
