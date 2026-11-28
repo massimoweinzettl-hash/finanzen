@@ -164,7 +164,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .sb.plan i { opacity: .4 }
 .sz { position: absolute; left: 0; right: 0; height: 1px; background: var(--muted); pointer-events: none }
 .sbl { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; text-align: center; font-size: 11px; color: var(--muted) }
-.sbl .cur { color: var(--ink); font-weight: 600 }
+.sbl .cur { color: var(--bad); font-weight: 700 }
 .sscroll { overflow-x: auto; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-inline: -4px; padding-inline: 4px }
 .sscroll::-webkit-scrollbar { display: none }
 .sinner { position: relative; width: max-content; padding: 16px calc(50% - 23px) 0 }
@@ -203,7 +203,8 @@ td button { padding: 4px 8px; font-size: 13px }
 .ib[aria-expanded="true"] { border-color: var(--accent); color: var(--accent) } p.kweg { margin-top: 4px } #dline { margin-top: 6px } .kchart .kdl { fill: none; stroke: var(--good); stroke-width: 2; stroke-linejoin: round; opacity: .85 } .kchart .kdl.kf { stroke-dasharray: 4 4; opacity: .6 } .kchart .kdb { fill: var(--good); opacity: .14 } .kline.ed .krow label { flex: 1; min-width: 0; font-size: 12px }
 .grphead.sect { padding: 6px 2px 0; align-items: baseline } .grphead.sect b { font: 600 16px var(--display) }
 .kwrap { margin-top: 10px } .kchart.kchart { width: auto; display: block } .kpt circle { fill: var(--accent) } .kpt text { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kpt.now text { fill: var(--ink); font-weight: 600 } .kpt.sel circle { r: 4.5; stroke: var(--surface); stroke-width: 2 } .kpt.sel text { fill: var(--ink); font-weight: 700; font-size: 10.5px } #kscroll { scroll-snap-type: none } .kchart { width: 100%; height: auto; display: block } .kchart .kz { stroke: var(--muted); stroke-width: 1; opacity: .5 } .kchart .ka { fill: var(--accent); opacity: .12 } .kchart .kl { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round } .kchart .kf { stroke-dasharray: 4 4; opacity: .7 } .kchart .kd { fill: var(--accent); stroke: var(--surface); stroke-width: 2 } .kchart .kt { font-size: 10px; fill: var(--muted) } .kchart .kt.now { fill: var(--ink); font-weight: 600 } .kchart .kv { font-size: 9px; fill: var(--muted); letter-spacing: -.02em } .kchart .kv.now { fill: var(--ink); font-weight: 600; font-size: 10px } .kchart .kp { fill: var(--accent) }
-.snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--muted); pointer-events: none; opacity: .6 }
+.snow { position: absolute; top: 0; bottom: 0; border-left: 1px dashed var(--bad); pointer-events: none; opacity: .7 } .snow::before { content: ""; position: absolute; top: -3px; left: -4.5px; width: 8px; height: 8px; border-radius: 50%; background: var(--bad) }
+.kchart .kpt.now circle { fill: var(--bad); stroke: var(--surface); stroke-width: 2 } .kchart .kpt.now text { fill: var(--bad); font-weight: 700 }
 .spr { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; height: 110px; border-bottom: 1px solid var(--line) }
 .spr .sb i { border-radius: 4px 4px 0 0 }
 .spr .spv { position: absolute; left: 0; right: 0; top: 2px; font-size: 9.5px; color: var(--muted); text-align: center; white-space: nowrap; letter-spacing: -.02em }
@@ -265,7 +266,7 @@ h2 { font-family: var(--display); font-weight: 600; font-size: 20px } h3 { font-
 .hper button { flex: 1 1 0; min-width: 0; min-height: 36px; padding: 4px 0; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .08); color: #e8e1d2; font: 600 12.5px var(--body) }
 .hper button[aria-pressed="true"] { background: #d9bf8c; color: #1b2e22 }
 .hspark { margin: 8px -4px 0 } .hspark svg { display: block; width: 100%; height: 70px }
-.lsvg { display: block; width: 100%; height: auto; overflow: visible } .lsvg .lv { font: 600 10.5px var(--body); fill: var(--ink) } .lsvg .lx { font: 500 10px var(--body); fill: var(--muted) }
+.lsvg { display: block; width: 100%; height: auto; overflow: visible } .lsvg .lv { font: 600 10.5px var(--body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round } .lsvg .lx { font: 500 10px var(--body); fill: var(--muted) } .lsvg .td { fill: var(--bad); font-weight: 700 }
 .iocards.small3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px } .small3 .ioc { padding: 10px 12px; font-size: 12.5px } .small3 .ioc b { font-size: 16px }
 .alerts { display: flex; flex-direction: column; gap: 8px }
 .alert { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; padding: 12px 14px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); border-left: 4px solid var(--gold) }
@@ -458,7 +459,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 48;
+  var APP_VERSION = 49;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -933,35 +934,54 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     return { now, ref, ser, ch: ref ? now.v - ref.v : null, pc: ref && Math.abs(ref.v) >= Math.max(500, Math.abs(now.v) * 0.2) ? (now.v - ref.v) / Math.abs(ref.v) * 100 : null };
   }
   /* Linien-Diagramm (SVG). series: [{v:[..], col, dash (Index ab dem gestrichelt = Prognose), w}], lab: Beschriftungen je Punkt */
+  /* v49: Beschriftungen werden nur gesetzt, wenn sie nicht mit schon gesetzten überlappen (geschätzte Textbreite).
+     Zuerst „Heute“, dann Anfang/Ende, dann gleichmäßig verteilt. */
+  function placeLabels(xs, texts, prio, cw, W) {
+    const ok = [], box = j => { const w = texts[j].length * cw + 6, x = xs[j], l = j === 0 ? x : j === xs.length - 1 ? x - w : x - w / 2; return [Math.max(0, Math.min(W - w, l)), w]; };
+    prio.forEach(j => { if (j == null || j < 0 || j >= xs.length || ok.some(q => q.j === j)) return; const [l, w] = box(j); if (ok.every(q => l + w <= q.l || l >= q.l + q.w)) ok.push({ j, l, w }); });
+    return ok;
+  }
+  const lblPrio = (n, today, step) => { const p = [today, n - 1, 0]; for (let j = n - 1; j >= 0; j -= step) p.push(j); return p; };
+  /* Linien-Diagramm (SVG). series: [{v:[..], col, dash (Index ab dem gestrichelt = Prognose), w}], lab: Beschriftungen je Punkt,
+     o.today = Index des laufenden Monats/heute: roter Punkt, Linie und Beschriftung „Heute“ (Wunsch des Besitzers) */
   function lineSvg(series, lab, o) {
-    o = o || {}; const W = 340, H = o.h || 150, P = { l: 4, r: 4, t: 18, b: lab ? 18 : 4 }, n = lab ? lab.length : series[0].v.length;
+    o = o || {}; const W = 340, H = o.h || 150, P = { l: 4, r: 4, t: 18, b: lab ? 18 : 4 }, n = lab ? lab.length : series[0].v.length, td = o.today;
     const all = []; series.forEach(sr => sr.v.forEach(v => { if (v != null) all.push(v); })); if (!all.length) return "";
     let lo = Math.min(...all), hi = Math.max(...all); if (hi - lo < 1) { hi += 1; lo -= 1; } const pad0 = (hi - lo) * 0.12; lo -= pad0; hi += pad0;
     const X = j => P.l + (n > 1 ? j / (n - 1) : 0.5) * (W - P.l - P.r), Y = v => P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b);
     let h = '<svg class="lsvg" viewBox="0 0 ' + W + " " + H + '" role="img"' + (o.aria ? ' aria-label="' + esc(o.aria) + '"' : "") + ">";
     if (lo < 0 && hi > 0) h += '<line x1="0" x2="' + W + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" stroke="var(--line)" stroke-dasharray="3 3"/>';
+    if (td != null && lab) h += '<line x1="' + X(td).toFixed(1) + '" x2="' + X(td).toFixed(1) + '" y1="' + P.t + '" y2="' + (H - P.b) + '" stroke="var(--bad)" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
+    let top = "";
     series.forEach((sr, si) => {
       const pts = sr.v.map((v, j) => v == null ? null : [X(j), Y(v)]), dash = sr.dash == null ? n : sr.dash;
       const path = (a, b) => { let d = "", on = false; for (let j = a; j <= b && j < n; j++) { const q = pts[j]; if (!q) { on = false; continue; } d += (on ? "L" : "M") + q[0].toFixed(1) + "," + q[1].toFixed(1); on = true; } return d; };
       if (si === 0 && o.area !== false) { const f = pts.findIndex(Boolean), l = pts.length - 1 - [...pts].reverse().findIndex(Boolean); if (f >= 0 && l > f) h += '<path d="' + path(f, l) + "L" + pts[l][0].toFixed(1) + "," + (H - P.b) + "L" + pts[f][0].toFixed(1) + "," + (H - P.b) + 'Z" fill="' + sr.col + '" opacity=".10"/>'; }
       h += '<path d="' + path(0, Math.min(dash, n - 1)) + '" fill="none" stroke="' + sr.col + '" stroke-width="' + (sr.w || 2.2) + '" stroke-linejoin="round" stroke-linecap="round"/>';
       if (dash < n - 1) h += '<path d="' + path(dash, n - 1) + '" fill="none" stroke="' + sr.col + '" stroke-width="' + (sr.w || 2.2) + '" stroke-dasharray="4 4" opacity=".8"/>';
-      if (o.vals !== false && si === 0) { const ix = []; let mx = -1, mn = -1; sr.v.forEach((v, j) => { if (v == null) return; if (mx < 0 || v > sr.v[mx]) mx = j; if (mn < 0 || v < sr.v[mn]) mn = j; });
-        [mn, mx, o.mark != null ? o.mark : n - 1].forEach(j => { if (j >= 0 && sr.v[j] != null && !ix.includes(j)) ix.push(j); });
-        ix.forEach(j => { const q = pts[j], an = j === 0 ? "start" : j === n - 1 ? "end" : "middle"; h += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" fill="' + sr.col + '"/><text class="lv" x="' + q[0].toFixed(1) + '" y="' + (q[1] - 7).toFixed(1) + '" text-anchor="' + an + '"' + SBLR() + ">" + kfmt2(sr.v[j]) + "</text>"; }); }
+      if (o.vals !== false && si === 0) { let mx = -1, mn = -1; sr.v.forEach((v, j) => { if (v == null) return; if (mx < 0 || v > sr.v[mx]) mx = j; if (mn < 0 || v < sr.v[mn]) mn = j; });
+        const xs = pts.map(q => q ? q[0] : -999), tx = sr.v.map(v => v == null ? "" : kfmt2(v)), acc = [];
+        [td, mn, mx, n - 1].forEach(j => { if (j == null || j < 0 || !pts[j] || acc.some(q => q.j === j)) return; const w = tx[j].length * 6.2 + 4, an = j === 0 ? 0 : j === n - 1 ? 1 : 0.5, l = xs[j] - w * an, y = pts[j][1] - 7;
+          if (acc.every(q => l + w <= q.l || l >= q.l + q.w || Math.abs(y - q.y) > 12)) acc.push({ j, l, w, y, an }); });
+        acc.forEach(q => { const p0 = pts[q.j]; h += (q.j === td ? "" : '<circle cx="' + p0[0].toFixed(1) + '" cy="' + p0[1].toFixed(1) + '" r="3" fill="' + sr.col + '"/>') + '<text class="lv' + (q.j === td ? " td" : "") + '" x="' + p0[0].toFixed(1) + '" y="' + Math.max(10, q.y).toFixed(1) + '" text-anchor="' + (q.an === 0 ? "start" : q.an === 1 ? "end" : "middle") + '"' + SBLR() + ">" + tx[q.j] + "</text>"; }); }
+      if (si === 0 && td != null && pts[td]) top = '<circle cx="' + pts[td][0].toFixed(1) + '" cy="' + pts[td][1].toFixed(1) + '" r="5" fill="var(--bad)" stroke="var(--surface)" stroke-width="2"/>';
     });
-    if (lab) { const step = Math.max(1, Math.ceil(n / 7)); lab.forEach((t, j) => { if (j % step && j !== n - 1) return; h += '<text class="lx" x="' + X(j).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="' + (j === 0 ? "start" : j === n - 1 ? "end" : "middle") + '">' + esc(t) + "</text>"; }); }
+    h += top;
+    if (lab) { const L = lab.map((t, j) => j === td ? "Heute" : t), xs = L.map((_, j) => X(j));
+      placeLabels(xs, L, lblPrio(n, td, Math.max(1, Math.ceil(n / 7))), 5.6, W).forEach(q => { h += '<text class="lx' + (q.j === td ? " td" : "") + '" x="' + (q.l + q.w / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + esc(L[q.j]) + "</text>"; }); }
     return h + "</svg>";
   }
   const kfmt2 = v => { const a = Math.abs(v), s = v < 0 ? "−" : ""; return s + (a >= 10000 ? (Math.round(a / 100) / 10).toString().replace(".", ",") + "k" : Math.round(a).toLocaleString("de-DE")); };
-  /* Balken-Diagramm, gruppiert: groups [{lab, bars:[{v, col}]}] */
+  /* Balken-Diagramm, gruppiert: groups [{lab, bars:[{v, col}]}]; o.today = Index des laufenden Monats (hinterlegt, roter Punkt, „Heute“) */
   function barSvg(groups, o) {
-    o = o || {}; const W = 340, H = o.h || 160, P = { t: 16, b: 18 }, n = groups.length, k = groups[0] ? groups[0].bars.length : 1;
-    const mx = Math.max(1, ...groups.flatMap(g => g.bars.map(b => b.v))), gw = W / n, bw = Math.max(3, Math.min(14, (gw - 6) / k - 2));
+    o = o || {}; const W = 340, H = o.h || 160, P = { t: 16, b: 18 }, n = groups.length, k = groups[0] ? groups[0].bars.length : 1, td = o.today;
+    const mx = Math.max(1, ...groups.flatMap(g => g.bars.map(b => b.v))), gw = W / n, gp = k > 1 ? 1 : 0, bw = Math.max(1.5, Math.min(14, gw * 0.78 / k - gp));
     let h = '<svg class="lsvg" viewBox="0 0 ' + W + " " + H + '" role="img"' + (o.aria ? ' aria-label="' + esc(o.aria) + '"' : "") + ">";
-    groups.forEach((g, j) => { const x0 = j * gw + (gw - k * (bw + 2)) / 2;
-      g.bars.forEach((b, i) => { const hh = b.v / mx * (H - P.t - P.b), x = x0 + i * (bw + 2); h += '<rect x="' + x.toFixed(1) + '" y="' + (H - P.b - hh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, hh).toFixed(1) + '" rx="2" fill="' + b.col + '"' + (g.plan ? ' opacity=".45"' : "") + "><title>" + esc(g.lab + ": " + eur(b.v)) + "</title></rect>"; });
-      h += '<text class="lx" x="' + (j * gw + gw / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + esc(g.lab) + "</text>"; });
+    if (td != null) h += '<rect x="' + (td * gw).toFixed(1) + '" y="' + (P.t - 8) + '" width="' + gw.toFixed(1) + '" height="' + (H - P.b - P.t + 8) + '" rx="4" fill="var(--bad)" opacity=".08"/><circle cx="' + (td * gw + gw / 2).toFixed(1) + '" cy="' + (P.t - 10) + '" r="3.5" fill="var(--bad)"/>';
+    groups.forEach((g, j) => { const x0 = j * gw + (gw - k * (bw + gp)) / 2;
+      g.bars.forEach((b, i) => { const hh = b.v / mx * (H - P.t - P.b), x = x0 + i * (bw + gp); h += '<rect x="' + x.toFixed(1) + '" y="' + (H - P.b - hh).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(0, hh).toFixed(1) + '" rx="' + Math.min(2, bw / 2).toFixed(1) + '" fill="' + b.col + '"' + (g.plan ? ' opacity=".45"' : "") + "><title>" + esc(g.lab + ": " + eur(b.v)) + "</title></rect>"; }); });
+    const L = groups.map((g, j) => j === td ? "Heute" : g.lab), xs = L.map((_, j) => j * gw + gw / 2);
+    placeLabels(xs.map((x, j) => x), L, lblPrio(n, td, Math.max(1, Math.ceil(n / 8))), 5.6, W).forEach(q => { h += '<text class="lx' + (q.j === td ? " td" : "") + '" x="' + (q.l + q.w / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + esc(L[q.j]) + "</text>"; });
     return h + "</svg>";
   }
   function dashHtml() {
@@ -971,7 +991,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     if (g == null) h += '<button class="hchip" data-act="kedit2">Kontostand eintragen ›</button>';
     else if (C.ch != null) h += '<span class="hchip ' + (C.ch < 0 ? "dn" : "") + '">' + (C.ch < 0 ? "↓ −" : "↑ +") + blr(eur(Math.abs(C.ch))) + (C.pc != null ? " · " + (C.pc < 0 ? "−" : "+") + Math.abs(C.pc).toFixed(1).replace(".", ",") + " %" : "") + '</span> <span class="hsub">seit ' + dfmt(C.ref.d) + C.ref.d.slice(2, 4) + "</span>";
     h += '<div class="hper" role="group" aria-label="Zeitraum">' + PERS.map(([k, l]) => '<button data-act="wper" data-id="' + k + '" aria-pressed="' + (k === P) + '">' + l + "</button>").join("") + "</div>";
-    if (C.ser.length > 1) h += '<div class="hspark">' + lineSvg([{ v: C.ser.map(x => x.v), col: "#d9bf8c" }], null, { h: 70, vals: false, area: true, aria: "Verlauf Gesamtvermögen" }) + "</div>";
+    if (C.ser.length > 1) h += '<div class="hspark">' + lineSvg([{ v: C.ser.map(x => x.v), col: "#d9bf8c" }], null, { h: 70, vals: false, area: true, today: C.ser.length - 1, aria: "Verlauf Gesamtvermögen" }) + "</div>";
     h += '<div class="hsplit"><button data-act="detail" data-id="giro"><span>Girokonto</span><b>' + (g == null ? "–" : money(g)) + '</b></button><button data-act="detail" data-id="depot"><span>Depot</span><b>' + money(dp) + "</b></button></div></div>";
     h += alertsHtml();
     h += '<div class="iocards"><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii in">' + ico("down") + '</span><span>Einnahmen ' + mshort(cm) + '</span><b>' + money(t.i) + '</b></button><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii out">' + ico("up") + '</span><span>Ausgaben ' + mshort(cm) + '</span><b>' + money(t.o) + "</b></button></div>";
@@ -988,7 +1008,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       const g = giroNow(), end = projBal(cm);
       h += '<div class="stats"><div><b>' + money(g) + '</b><span>heute' + (S.konto.date.slice(0, 7) !== cm ? " (geschätzt)" : "") + '</span></div><div><b class="' + (end < 0 ? "neg" : "") + '">' + money(end) + "</b><span>Ende " + mname(cm).split(" ")[0] + " (Prognose)</span></div></div>";
       h += '<p class="small muted">Eingetragen: ' + eur(S.konto.balance) + " am " + dfmt(S.konto.date) + S.konto.date.slice(0, 4) + ". " + kontoWeg(cm) + "</p>";
-      h += '<h3>Verlauf (Monatsende)</h3>' + lineSvg([{ v: ms.map(m => kontoBal(m)), col: "var(--accent)", dash: mark }], lab, { mark, aria: "Girokonto am Monatsende" });
+      h += '<h3>Verlauf (Monatsende)</h3>' + lineSvg([{ v: ms.map(m => kontoBal(m)), col: "var(--accent)", dash: mark }], lab, { today: mark, aria: "Girokonto am Monatsende" });
       const open = led(cm).items.filter(x => x.open);
       if (open.length) h += '<h3>Kommt diesen Monat noch</h3><div class="tablewrap"><table><tbody>' + open.map(x => itemRow(Object.assign({ m: cm }, x), true)).join("") + "</tbody></table></div>";
       h += '<h3>Letzte Monate</h3><div class="tablewrap"><table class="mt"><thead><tr><th>Monat</th><th class="r">Ein</th><th class="r">Aus</th><th class="r">Gespart</th><th class="r">Ende</th></tr></thead><tbody>' +
@@ -998,9 +1018,9 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     const dp = depotNow(), sp12 = ms.slice(0, 12).reduce((a, m) => a + totals(m).sp, 0), lo = ms.map(m => mi(m) > kc ? depotProj(m, DRMIN()) : null), hi = ms.map(m => mi(m) > kc ? depotProj(m, DRMAX()) : null), mid = ms.map((m, j) => mi(m) > kc ? (lo[j] + hi[j]) / 2 : depotBal(m));
     h += '<div class="stats"><div><b>' + money(dp) + '</b><span>heute</span></div><div><b>' + money(totals(cm).sp) + '</b><span>Sparrate ' + mshort(cm) + '</span></div><div><b>' + money(sp12 / 12) + '</b><span>Ø Sparrate 12 Monate</span></div></div>';
     h += '<p class="small muted">' + (S.depot ? "Depotwert " + eur(S.depot.balance) + " am " + dfmt(S.depot.date) + S.depot.date.slice(0, 4) + ", danach plus Sparraten (ohne Kursentwicklung)." : "Noch kein Depotwert eingetragen: gezeigt wird die Summe deiner Sparraten.") + " Prognose " + String(DRMIN()).replace(".", ",") + "–" + String(DRMAX()).replace(".", ",") + " % Rendite pro Jahr, real.</p>";
-    h += '<h3>Verlauf und Prognose</h3>' + lineSvg([{ v: mid, col: "var(--gold)", dash: mark }, { v: lo.map((v, j) => j === mark ? mid[j] : v), col: "var(--gold)", w: 1, dash: mark }, { v: hi.map((v, j) => j === mark ? mid[j] : v), col: "var(--gold)", w: 1, dash: mark }], lab, { mark, aria: "Depot am Monatsende" });
+    h += '<h3>Verlauf und Prognose</h3>' + lineSvg([{ v: mid, col: "var(--gold)", dash: mark }, { v: lo.map((v, j) => j === mark ? mid[j] : v), col: "var(--gold)", w: 1, dash: mark }, { v: hi.map((v, j) => j === mark ? mid[j] : v), col: "var(--gold)", w: 1, dash: mark }], lab, { today: mark, aria: "Depot am Monatsende" });
     h += '<p class="small muted">In 6 Monaten: ' + eur0(lo[18]) + " bis " + eur0(hi[18]) + ".</p>";
-    h += '<h3>Sparraten</h3>' + barSvg(ms.slice(6, 19).map(m => ({ lab: mshort(m), plan: mi(m) > kc, bars: [{ v: totals(m).sp, col: "var(--gold)" }] })), { h: 120, aria: "Sparraten pro Monat" });
+    h += '<h3>Sparraten</h3>' + barSvg(ms.slice(6, 19).map(m => ({ lab: mshort(m), plan: mi(m) > kc, bars: [{ v: totals(m).sp, col: "var(--gold)" }] })), { h: 120, today: 6, aria: "Sparraten pro Monat" });
     return h + '<div class="row"><button class="primary" data-act="dedit3">Depotwert aktualisieren</button></div>';
   }
   /* Vermögensentwicklung (Reiter Analyse, oben) */
@@ -1011,9 +1031,9 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     const wp = (S.konto ? kontoBal(pm) : 0) + depotBal(pm), wpp = (S.konto ? kontoBal(im(kc - 2)) : 0) + depotBal(im(kc - 2));
     let h = '<div class="block"><div class="grphead"><h2>Vermögensentwicklung</h2><div class="seg" role="group" aria-label="Zeitraum">' + [6, 12, 24].map(x => '<button data-act="dper" data-id="' + x + '" aria-pressed="' + (x === n) + '">' + x + " M</button>").join("") + "</div></div>";
     h += '<h3>Letzter Monat: ' + mname(pm) + '</h3><div class="stats"><div><b class="pos">' + money(tp.i) + '</b><span>Einnahmen</span></div><div><b class="neg">' + money(tp.o) + '</b><span>Ausgaben</span></div><div><b>' + money(tp.sp) + '</b><span>gespart</span></div><div><b class="' + (wp - wpp < 0 ? "neg" : "pos") + '">' + blr((wp - wpp >= 0 ? "+" : "") + eur(wp - wpp)) + "</b><span>Vermögen im " + mname(pm).split(" ")[0] + "</span></div></div>";
-    h += '<h3>Vermögen am Monatsende</h3>' + lineSvg([{ v, col: "var(--accent)" }, { v: d, col: "var(--gold)", w: 1.6 }].concat(S.konto ? [{ v: g, col: "var(--c3)", w: 1.6 }] : []), lab, { aria: "Vermögen, Depot und Girokonto am Monatsende" }) +
+    h += '<h3>Vermögen am Monatsende</h3>' + lineSvg([{ v, col: "var(--accent)" }, { v: d, col: "var(--gold)", w: 1.6 }].concat(S.konto ? [{ v: g, col: "var(--c3)", w: 1.6 }] : []), lab, { today: n, aria: "Vermögen, Depot und Girokonto am Monatsende" }) +
       '<div class="legend"><span><i style="background:var(--accent)"></i>Gesamt</span><span><i style="background:var(--gold)"></i>Depot</span>' + (S.konto ? '<span><i style="background:var(--c3)"></i>Girokonto</span>' : "") + "</div>";
-    h += '<h3>Einnahmen, Ausgaben und Sparen</h3>' + barSvg(ms.map(m => { const t = totals(m); return { lab: mshort(m), bars: [{ v: t.i, col: "var(--good)" }, { v: t.o, col: "var(--bad)" }, { v: t.sp, col: "var(--gold)" }] }; }), { aria: "Einnahmen, Ausgaben und Sparen pro Monat" }) +
+    h += '<h3>Einnahmen, Ausgaben und Sparen</h3>' + barSvg(ms.map(m => { const t = totals(m); return { lab: mshort(m) + (m.slice(5) === "01" && n > 12 ? " " + m.slice(2, 4) : ""), bars: [{ v: t.i, col: "var(--good)" }, { v: t.o, col: "var(--bad)" }, { v: t.sp, col: "var(--gold)" }] }; }), { today: n, aria: "Einnahmen, Ausgaben und Sparen pro Monat" }) +
       '<div class="legend"><span><i style="background:var(--good)"></i>Einnahmen</span><span><i style="background:var(--bad)"></i>Ausgaben</span><span><i style="background:var(--gold)"></i>gespart</span></div>';
     const T = totalsOf(ms.slice(0, -1));
     h += '<p class="small muted">Summe der letzten ' + n + " abgeschlossenen Monate: Einnahmen " + eur(T.i) + ", Ausgaben " + eur(T.o) + ", gespart " + eur(T.sp) + ", Sparquote " + (T.q != null ? Math.round(T.q * 100) + " %" : "–") + ". Laufender Monat inklusive „kommt noch“.</p></div>";
@@ -1077,8 +1097,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       h += '<circle class="s' + (sel ? " on" : pk ? " dim" : "") + '"' + tr + ' data-act="cpick" data-id="' + esc(r.c) + '" tabindex="0" cx="95" cy="95" r="' + R + '" fill="none" stroke="' + ccol(r.c) + '" stroke-width="' + (sel ? W + 6 : W) + '" stroke-dasharray="' + vis.toFixed(2) + " " + (C - vis).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '"><title>' + esc(catName(r.c)) + ": " + eur(r.v) + " (" + pctR(r) + ")</title></circle>";
       off += len;
     });
-    const pr = pk && rows.find(r => r.c === pk), nm = pr ? catName(pk) : "";
-    h += '</g><text class="ct" x="95" y="96" text-anchor="middle"' + SBLR() + ">" + eur(pr ? pr.v : tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (pr ? esc(nm.length > 15 ? nm.slice(0, 13).trim() + "…" : nm) : ty === "in" ? "Einnahmen" : "Ausgaben") + "</text>" + (pr ? '<text class="cl" x="95" y="132" text-anchor="middle">' + pctR(pr) + "</text>" : "") + "</svg>";
+    const pr = pk && rows.find(r => r.c === pk), nm = pr ? catName(pk).replace(/\s*\(.*\)\s*$/, "") : "", cnl = [];
+    /* v49: Name in der Kreismitte nicht mehr abschneiden, sondern auf bis zu zwei Zeilen umbrechen */
+    nm.split(" ").forEach(x => { const l = cnl.length - 1; if (l >= 0 && (cnl[l] + " " + x).length <= 15) cnl[l] += " " + x; else cnl.push(x); });
+    h += '</g><text class="ct" x="95" y="96" text-anchor="middle"' + SBLR() + ">" + eur(pr ? pr.v : tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (pr ? cnl.map((t, i) => '<tspan x="95"' + (i ? ' dy="14"' : "") + ">" + esc(t) + "</tspan>").join("") : ty === "in" ? "Einnahmen" : "Ausgaben") + "</text>" + (pr ? '<text class="cl" x="95" y="' + (132 + (cnl.length - 1) * 14) + '" text-anchor="middle">' + pctR(pr) + "</text>" : "") + "</svg>";
     return h;
   }
 
@@ -1111,7 +1133,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       const t = st[j], none = !t.i && !t.o, neg = t.s < 0, ht = none ? 0 : Math.max(1.2, Math.min(neg ? nmax : pmax, Math.abs(t.s)) / span * 80);
       return '<button class="sb' + (isPlan(m) ? " plan" : "") + (m === S.sbSel ? " sel" : "") + '" data-act="mopen" data-id="' + m + '" aria-current="' + (m === cm) + '" aria-label="' + mname(m) + ": " + (none ? "keine Daten" : "Saldo " + eur(t.s)) + (isPlan(m) ? ", geplant" : "") + '" title="' + mname(m) + ": " + (none ? "keine Daten" : eur(t.s)) + '">' +
         (none ? "" : '<i class="' + (neg ? "n" : "") + '" style="top:' + (neg ? zero : zero - ht).toFixed(2) + "%;height:" + ht.toFixed(2) + '%"></i><span class="sbv" style="top:calc(' + (neg ? (zero + ht).toFixed(2) + "% + 2px" : (zero - ht).toFixed(2) + "% - 14px") + ')">' + (t.s > 0 ? "+" : t.s < 0 ? "−" : "") + kfmt(Math.abs(t.s)) + "</span>") + "</button>";
-    }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0 + 1) * (SBW + 4) - 2) + 'px"></span></div>' +
+    }).join("") + '<span class="sz" style="top:' + zero.toFixed(2) + '%"></span><span class="snow" style="left:' + ((kc - k0) * (SBW + 4) + SBW / 2) + 'px"></span></div>' +
       '<div class="sbl" style="grid-template-columns:repeat(' + sm.length + ',' + SBW + 'px)">' + sm.map(m => '<span' + (m === cm ? ' class="cur"' : "") + ">" + mshort(m) + (m.slice(5) === "01" || m === sm[0] ? "<b>" + m.slice(0, 4) + "</b>" : "") + (lend[m] ? '<em class="lend" title="Kredit endet: ' + esc(lend[m].join(", ")) + '">Ende</em>' : "") + "</span>").join("") + "</div></div></div></div>" +
       '<div class="legend"><span><i style="background:var(--good)"></i>Plus</span><span><i style="background:var(--bad)"></i>Minus</span><span><i style="background:var(--muted);opacity:.4"></i>geplant</span></div>' +
       '<div class="yfoot"><span>Letzte 12 Monate: ' + sg(pb) + '</span><span>Nächste 12 Monate (geplant): ' + sg(fw) + "</span></div>" +
@@ -1241,7 +1263,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     if (dv.length) { const dp = (arr, j) => x(j).toFixed(1) + "," + y(arr[j]).toFixed(1), d1 = [], lo = [], hi = [], mid = [];
       dv.forEach((q, j) => { if (j <= now) d1.push(dp(dv, j)); if (j >= now) { lo.push(dp(S.kdlo, j)); hi.push(dp(S.kdhi, j)); mid.push(x(j).toFixed(1) + "," + y((S.kdlo[j] + S.kdhi[j]) / 2).toFixed(1)); } });
       g += '<polygon class="kdb" points="' + lo.concat(hi.reverse()).join(" ") + '"/><polyline class="kdl" points="' + d1.join(" ") + '"/><polyline class="kdl kf" points="' + mid.join(" ") + '"/>'; }
-    v.forEach((q, j) => { g += '<g class="kpt' + (sm[j] === S.sbSel ? " sel" : "") + (j === now ? " now" : "") + '" data-m="' + sm[j] + '"><circle cx="' + x(j).toFixed(1) + '" cy="' + y(q).toFixed(1) + '" r="2.5"/><text x="' + x(j).toFixed(1) + '" y="' + (y(q) - 7).toFixed(1) + '" text-anchor="middle">' + new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(q) + "</text></g>"; });
+    v.forEach((q, j) => { g += '<g class="kpt' + (sm[j] === S.sbSel ? " sel" : "") + (j === now ? " now" : "") + '" data-m="' + sm[j] + '"><circle cx="' + x(j).toFixed(1) + '" cy="' + y(q).toFixed(1) + '" r="' + (j === now ? 4.5 : 2.5) + '"/><text x="' + x(j).toFixed(1) + '" y="' + (y(q) - 7).toFixed(1) + '" text-anchor="middle">' + new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(q) + "</text></g>"; });
     return g + "</svg>";
   }
   function kontoBind() {
@@ -1287,7 +1309,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       const sp = ms.map(m => { let v = 0, inc = 0; monthItems(m).forEach(x => { if (x.type === "out" && x.cat === "sparen") v += x.amount; if (x.type === "in") inc += x.amount; }); return { m, v, inc }; });
       const mx = Math.max(S.sunit === "pct" ? 0.01 : 1, ...sp.map(x => S.sunit === "pct" ? (x.inc ? x.v / x.inc : 0) : x.v));
       h += '<h3>Sparrate pro Monat</h3><div class="spr">' + sp.map(x => { const val = S.sunit === "pct" ? (x.inc ? x.v / x.inc : 0) : x.v, t = S.sunit === "pct" ? (x.inc ? Math.round(x.v / x.inc * 100) + "%" : "–") : (x.v ? Math.round(x.v) + "" : "0");
-        return '<button class="sb' + (isPlan(x.m) ? " plan" : "") + '" data-act="copen" data-id="sparen" data-ty="out" data-m="' + x.m + '" aria-label="' + mname(x.m) + ": " + eur(x.v) + '"><span class="spv">' + t + '</span><i style="bottom:0;height:' + (val / mx * 78).toFixed(1) + '%;background:var(--c6)"></i></button>'; }).join("") + '</div><div class="sbl" style="grid-template-columns:repeat(12,minmax(0,1fr))">' + ms.map(m => "<span>" + mshort(m) + "</span>").join("") + "</div>" +
+        return '<button class="sb' + (isPlan(x.m) ? " plan" : "") + '" data-act="copen" data-id="sparen" data-ty="out" data-m="' + x.m + '" aria-label="' + mname(x.m) + ": " + eur(x.v) + '"><span class="spv">' + t + '</span><i style="bottom:0;height:' + (val / mx * 78).toFixed(1) + '%;background:var(--c6)"></i></button>'; }).join("") + '</div><div class="sbl" style="grid-template-columns:repeat(12,minmax(0,1fr))">' + ms.map(m => "<span" + (m === curMonth() ? ' class="cur"' : "") + ">" + mshort(m) + "</span>").join("") + "</div>" +
         '<p class="small muted">' + (S.sunit === "pct" ? "In % der Einnahmen des Monats." : "In € pro Monat.") + " Blasse Balken sind geplant.</p>";
     }
     const L = ci.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "in" })), R = co.rows.map(r => ({ c: r.c, v: r.v, col: ccol(r.c), name: catName(r.c), ty: "out" }));
@@ -1295,8 +1317,14 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     /* v39: Ausgaben-Beschriftung rechts NEBEN den Knoten (nicht mehr über den Bändern), ohne weißen Rand um die Schrift */
     const tot = Math.max(ti, to), W = 360, NW = 8, MINS = 17, G = 3, cx = 96, RX = 176;
     const usable = Math.max(200, R.length * 22), k = usable / tot;
-    const lay = (list, mn) => { let y = 0; list.forEach(n => { n.h = Math.max(1.5, n.v * k); n.y = y; n.mn = mn; y += Math.max(n.h, mn) + G; }); return y; };
-    const HL = lay(L, 30), HR = lay(R, MINS), H = Math.max(HL, HR, tot * k) + 4, cy = (H - tot * k) / 2;
+    /* v49: keine abgeschnittenen Namen mehr: Klammerzusatz weg, Namen umbrechen (links max. 13 Zeichen je Zeile, rechts Wert in eigene Zeile, wenn zu lang) */
+    const wrap = (t, w) => { const out = []; t.split(" ").forEach(x => { const l = out.length - 1; if (l >= 0 && (out[l] + " " + x).length <= w) out[l] += " " + x; else out.push(x); }); return out; };
+    const valOf = n => S.sunit === "pct" ? pct(n.v, base) : eur0(n.v);
+    L.concat(R).forEach(n => { n.nm = n.name.replace(/\s*\(.*\)\s*$/, ""); });
+    L.forEach(n => { n.lines = wrap(n.nm, 13); n.lmn = 13 * (n.lines.length + 1) + 4; });
+    R.forEach(n => { n.two = (n.nm + " " + valOf(n)).length > 27; n.lines = n.two ? wrap(n.nm, 27) : [n.nm]; n.lmn = n.two ? 13 * (n.lines.length + 1) + 4 : MINS; });
+    const lay = list => { let y = 0; list.forEach(n => { n.h = Math.max(1.5, n.v * k); n.y = y; n.mn = n.lmn; y += Math.max(n.h, n.mn) + G; }); return y; };
+    const HL = lay(L), HR = lay(R), H = Math.max(HL, HR, tot * k) + 4, cy = (H - tot * k) / 2;
     const band = (x0, y0, h0, x1, y1, h1, col) => { const m = (x0 + x1) / 2; return '<path d="M' + x0 + "," + y0 + "C" + m + "," + y0 + " " + m + "," + y1 + " " + x1 + "," + y1 + "L" + x1 + "," + (y1 + h1) + "C" + m + "," + (y1 + h1) + " " + m + "," + (y0 + h0) + " " + x0 + "," + (y0 + h0) + 'Z" fill="' + col + '" opacity=".32"/>'; };
     let sv = '<svg class="sankey" viewBox="0 0 ' + W + " " + H.toFixed(0) + '" role="img" aria-label="Geldfluss von Einnahmen zu Ausgaben">';
     let off = 0;
@@ -1306,9 +1334,9 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     sv += '<rect x="' + cx + '" y="' + cy.toFixed(1) + '" width="' + NW + '" height="' + (tot * k).toFixed(1) + '" rx="2" fill="var(--muted)"/>';
     const node = (n, x, anchor, tx, two) => {
       const act = n.c ? ' data-act="copen" data-id="' + esc(n.c) + '" data-ty="' + n.ty + '" style="cursor:pointer"' : "";
-      const val = S.sunit === "pct" ? pct(n.v, base) : eur0(n.v);
+      const val = valOf(n), ml = two || n.two, nl = n.lines.length + (ml ? 1 : 0), y0 = n.y + Math.max(n.h, n.mn) / 2 - (nl - 1) * 6.5 + 4;
       return "<g" + act + '><rect x="' + x + '" y="' + n.y.toFixed(1) + '" width="' + NW + '" height="' + n.h.toFixed(1) + '" rx="2" fill="' + n.col + '"/>' +
-        '<text class="sk" x="' + tx + '" y="' + (n.y + Math.max(n.h, n.mn) / 2 + (two ? -2 : 4)).toFixed(1) + '" text-anchor="' + anchor + '"><tspan font-weight="600">' + esc(two ? (n.name.length > 13 ? n.name.slice(0, 12).trim() + "…" : n.name) : n.name.length > 20 ? n.name.slice(0, 18).trim() + "…" : n.name) + "</tspan>" + (two ? '<tspan class="skv" x="' + tx + '" dy="13">' + val + "</tspan>" : '<tspan class="skv"> ' + val + "</tspan>") + "<title>" + esc(n.name) + ": " + eur(n.v) + "</title></text></g>";
+        '<text class="sk" x="' + tx + '" y="' + y0.toFixed(1) + '" text-anchor="' + anchor + '">' + n.lines.map((t, i) => '<tspan font-weight="600"' + (i ? ' x="' + tx + '" dy="13"' : "") + ">" + esc(t) + "</tspan>").join("") + (ml ? '<tspan class="skv" x="' + tx + '" dy="13">' + val + "</tspan>" : '<tspan class="skv"> ' + val + "</tspan>") + "<title>" + esc(n.name) + ": " + eur(n.v) + "</title></text></g>";
     };
     L.forEach(n => { sv += node(n, 0, "start", NW + 5, true); });
     R.forEach(n => { sv += node(n, RX, "start", RX + NW + 6); });
