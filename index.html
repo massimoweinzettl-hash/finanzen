@@ -226,7 +226,7 @@ td button { padding: 4px 8px; font-size: 13px }
 .pie { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 18px; align-items: center }
 .pie svg { width: 190px; height: 190px; display: block }
 .pie svg circle.s { cursor: pointer; transition: opacity .2s } .pie svg circle.s.dim { opacity: .3 } .pie svg { overflow: visible }
-.crow.on { background: var(--sunken) } .cpick { padding: 4px 0 0 10px; display: flex; flex-direction: column; gap: 6px } .cpick .grphead b { font: 600 16px var(--display) }
+.crow.on { background: var(--sunken) } .cpick { padding: 4px 0 10px 10px; margin: 2px 0 6px 6px; display: flex; flex-direction: column; gap: 6px } .cpick .grphead b { font: 600 16px var(--display) }
 .pie .ct { font: 600 17px var(--display); fill: var(--ink) } .pie .cl { font: 12px var(--body); fill: var(--muted) }
 .clist { display: flex; flex-direction: column; min-width: 0 }
 .crow { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 10px; align-items: center; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 9px 2px; font-weight: 400; width: 100% }
@@ -438,7 +438,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 45;
+  var APP_VERSION = 46;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -863,7 +863,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   function pickHtml(rows, ty) {
     const r = rows.find(x => x.c === S.cpick); if (!r) return "";
     const its = pickItems(r.c, ty), gs = pickGroups(r.c, ty), col = ccol(r.c);
-    return '<div class="cpick" style="border-left:3px solid ' + ccol(r.c) + '"><div class="grphead"><h3>' + esc(catName(r.c)) + '</h3><b class="' + (ty === "in" ? "pos" : "neg") + '">' + eur(r.v) + '</b></div><div class="tablewrap"><table><tbody>' + gs.slice(0, 12).map(x => '<tr><td><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + col + ";opacity:" + x.op.toFixed(2) + '"></span>' + esc(x.name) + (x.n > 1 ? '<span class="sub">' + x.n + " Buchungen</span>" : "") + '</td><td class="r ' + (ty === "in" ? "pos" : "neg") + '">' + (ty === "in" ? "+" : "−") + eur(x.v) + '<span class="sub">' + pct(x.v, r.v) + "</span></td></tr>").join("") + "</tbody></table></div>" +
+    return '<div class="cpick" style="border-left:3px solid ' + ccol(r.c) + '"><div class="tablewrap"><table><tbody>' + gs.slice(0, 12).map(x => '<tr><td><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;background:' + col + ";opacity:" + x.op.toFixed(2) + '"></span>' + esc(x.name) + (x.n > 1 ? '<span class="sub">' + x.n + " Buchungen</span>" : "") + '</td><td class="r ' + (ty === "in" ? "pos" : "neg") + '">' + (ty === "in" ? "+" : "−") + eur(x.v) + '<span class="sub">' + pct(x.v, r.v) + "</span></td></tr>").join("") + "</tbody></table></div>" +
       '<div class="row"><button class="ghost" data-act="copen" data-id="' + esc(r.c) + '">' + (its.length > 12 ? "Alle " + its.length + " Einträge ›" : "Details ›") + '</button><button class="ghost" data-act="cpick" data-id="">Schließen</button></div></div>';
   }
   function donut(rows, tot, ty) {
@@ -927,7 +927,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       '<div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="cper" data-id="m" aria-pressed="' + (S.cper === "m") + '">Monat</button><button data-act="cper" data-id="y" aria-pressed="' + (S.cper === "y") + '">Jahr</button></div>' +
       '<div class="month"><button data-act="' + (S.cper === "y" ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + perLabel() + '</b><button data-act="' + (S.cper === "y" ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div></div>';
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
-    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>").join("") + "</div></div>" + pickHtml(rows, ty) +
+    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pct(r.v, tot) : eur(r.v)) + "</span></button>" + (r.c === S.cpick ? pickHtml(rows, ty) : "")).join("") + "</div></div>" +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
     h += "</div>"; const hCat = h;
     /* v45: Übersicht = Dashboard; Kontostand, Saldo und Geldfluss wandern in den Reiter „Analyse“ */
