@@ -24,12 +24,15 @@ WICHTIG
 WO FINDE ICH WAS?
 -----------------
 Navigation unten: Übersicht · Umsätze · Verträge · Sparziele · Analyse.
-- Übersicht (Dashboard): Gesamtvermögen (Girokonto + Depot) mit Veränderung zum
-  Vormonat, Auge blendet Beträge aus; Einnahmen- und Ausgaben-Karte des Monats;
-  Kategorien als Kuchendiagramm (Ausgaben/Einnahmen, € oder %, Monat oder Jahr,
-  Kategorie antippen zeigt die Einträge); wichtigste Sparziele.
-- Umsätze: einzelne Ausgaben und Einnahmen; "Kontoauszug einspielen" liest
-  den CSV-Export der Bank (nur auf dem Gerät, doppelte werden erkannt).
+- Übersicht (Dashboard): Gesamtvermögen (Girokonto + Depot) mit Veränderung im
+  gewählten Zeitraum (7 T, 30 T, 3 M, 6 M, 12 M, Gesamt) und Verlaufslinie; Auge
+  blendet Beträge aus. Girokonto bzw. Depot antippen öffnet die Detailansicht.
+  Darunter Hinweise (Warnungen), Einnahmen/Ausgaben/Überschuss/Gespart/Sparquote
+  des Monats, Kategorien (Name, Betrag und Anteil, Summe = Ausgaben des Monats),
+  wichtigste Sparziele.
+- Umsätze: Buchung eintragen (Haken „Jeden Monat wiederholen“ legt einen festen
+  Posten an), Suche, Filter nach Zeitraum, Art, Kategorie und Betrag, Ändern/Löschen.
+  "Kontoauszug einspielen" liest den CSV-Export der Bank (nur auf dem Gerät).
 - Verträge, oben umschaltbar (merkt sich die letzte Auswahl):
   - Fixkosten: Gehalt, Miete, Versicherungen, Jahressonderzahlung, Prämie usw.
     mit Rhythmus; "Betrag ändert sich später" für Gehaltserhöhungen.
@@ -38,9 +41,15 @@ Navigation unten: Übersicht · Umsätze · Verträge · Sparziele · Analyse.
     Rechner für Sondertilgung, vorzeitige Ablösung.
 - Sparziele: Name, Symbol, Ziel, schon gespart, Sparrate pro Monat; Fortschritt
   und voraussichtliches Erreichen; "+ Betrag" bucht Eingezahltes dazu.
-- Analyse: Kontostand und Depot mit Verlauf, Saldo pro Monat (wischbar,
+- Analyse: Vermögensentwicklung (letzter Monat, Vermögen am Monatsende, Einnahmen/
+  Ausgaben/Sparen pro Monat), Kontostand und Depot mit Verlauf, Saldo pro Monat (wischbar,
   "Heute", "Ende" = letzte Kreditrate), Geldfluss (Sankey).
-- Zahnrad: Sicherung speichern und einspielen, Version.
+- Zahnrad: Sicherung speichern und einspielen, Hinweise ein/aus, Kontostand-Grenze,
+  alle Daten löschen, Version.
+
+Begriffe (überall gleich): Ausgaben ohne Sparen. Überschuss = Einnahmen − Ausgaben.
+Gespart = Kategorie „Sparen & Anlegen“ (geht ins Depot). Bleibt auf dem Konto =
+Überschuss − gespart. Sparquote = Überschuss ÷ Einnahmen.
 
 Kredit vorzeitig ablösen: Kredite → beim Kredit „Vorzeitig abgelöst“ → Monat und (optional) Ablösebetrag → „Ablösung speichern“. Frühere Raten bleiben stehen. Mit „Ablösung zurücknehmen“ rückgängig.
 Saldo: „Heute“ springt zum laufenden Monat. „Ende“ unter einem Monat = dort ist die letzte Rate eines Kredits.
