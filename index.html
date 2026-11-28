@@ -273,6 +273,7 @@ h2 { font-family: var(--display); font-weight: 600; font-size: 20px } h3 { font-
 label.tog { display: flex; flex-direction: row; gap: 10px; align-items: center; min-height: 44px; font-size: 14px; font-weight: 500; color: var(--ink) } label.tog input { width: 22px; height: 22px; min-height: 0; flex: none; padding: 0; accent-color: var(--accent) } label.tog[hidden] { display: none }
 .txf { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px } .txf .seg { display: flex } .txf .seg button { flex: 1 }
 .txact { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px } .txact button { min-height: 36px; padding: 4px 10px; font-size: 13px }
+.blr { filter: blur(7px); -webkit-user-select: none; user-select: none; display: inline-block; pointer-events: none }
 .eyeb { border: 0; background: none; color: inherit; padding: 4px; min-height: 0; display: inline-flex } .eyeb .ico { width: 22px; height: 22px }
 .iocards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
 .ioc { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; border: 0; background: var(--surface); box-shadow: var(--shadow); border-radius: 18px; padding: 14px 16px; color: var(--ink); font-weight: 400; font-size: 14px }
@@ -290,6 +291,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 </style>
 </head>
 <body><div id="rotnote" aria-hidden="true"><svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="15" y="5" width="18" height="34" rx="4"/><path d="M21 33h6"/><path d="M38 20a14 14 0 0 1 0 12M42 17a19 19 0 0 1 0 18" opacity=".5"/></svg>Bitte das Handy hochkant halten.</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="fblur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="3.5"/></filter></svg>
 <div class="wrap">
   <div class="top">
     <div class="tl"><button class="gear" data-act="more" aria-label="Einstellungen und Sicherung"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button><h1>Meine Finanzen</h1></div>
@@ -456,7 +458,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
      IndexedDB „finanzen“ (Store docs). Jede Änderung steht zuerst im Journal (localStorage) und danach in IndexedDB.
      Was IndexedDB nicht bestätigt hat, bleibt im Journal und wird beim nächsten Speichern oder Öffnen nachgeholt.
      Daten verlassen das Gerät nur über die Sicherung (Zahnrad). */
-  var APP_VERSION = 47;
+  var APP_VERSION = 48;
   const setSync = (t, err) => { const el = $("sync"); el.textContent = t; el.parentNode.classList.toggle("err", !!err); };
   const notice = t => { const el = $("notice"); el.hidden = !t; el.textContent = t || ""; };
   function applyDocs(list) {
@@ -865,7 +867,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   };
   const ico = (k, cls) => '<svg class="' + (cls || "ico") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || ICO.star) + "</svg>";
   const goals = () => Object.keys(S.goals).map(id => Object.assign({ id }, S.goals[id]));
-  const money = v => S.hide ? "•••• €" : eur(v);
+  /* v48 (Wunsch des Besitzers): ausgeblendete Beträge verschwommen statt ersetzt */
+  const blr = t => S.hide ? '<span class="blr" aria-label="ausgeblendet">' + t + "</span>" : t;
+  const money = v => blr(eur(v));
+  const SBLR = () => S.hide ? ' filter="url(#fblur)"' : "";
   function goalEta(g) {
     const rest = g.target - g.saved; if (rest <= 0) return "erreicht 🎉".replace(" 🎉", "");
     if (!(g.rate > 0)) return "";
@@ -943,7 +948,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       if (dash < n - 1) h += '<path d="' + path(dash, n - 1) + '" fill="none" stroke="' + sr.col + '" stroke-width="' + (sr.w || 2.2) + '" stroke-dasharray="4 4" opacity=".8"/>';
       if (o.vals !== false && si === 0) { const ix = []; let mx = -1, mn = -1; sr.v.forEach((v, j) => { if (v == null) return; if (mx < 0 || v > sr.v[mx]) mx = j; if (mn < 0 || v < sr.v[mn]) mn = j; });
         [mn, mx, o.mark != null ? o.mark : n - 1].forEach(j => { if (j >= 0 && sr.v[j] != null && !ix.includes(j)) ix.push(j); });
-        ix.forEach(j => { const q = pts[j], an = j === 0 ? "start" : j === n - 1 ? "end" : "middle"; h += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" fill="' + sr.col + '"/><text class="lv" x="' + q[0].toFixed(1) + '" y="' + (q[1] - 7).toFixed(1) + '" text-anchor="' + an + '">' + (S.hide ? "•••" : kfmt2(sr.v[j])) + "</text>"; }); }
+        ix.forEach(j => { const q = pts[j], an = j === 0 ? "start" : j === n - 1 ? "end" : "middle"; h += '<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="3" fill="' + sr.col + '"/><text class="lv" x="' + q[0].toFixed(1) + '" y="' + (q[1] - 7).toFixed(1) + '" text-anchor="' + an + '"' + SBLR() + ">" + kfmt2(sr.v[j]) + "</text>"; }); }
     });
     if (lab) { const step = Math.max(1, Math.ceil(n / 7)); lab.forEach((t, j) => { if (j % step && j !== n - 1) return; h += '<text class="lx" x="' + X(j).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="' + (j === 0 ? "start" : j === n - 1 ? "end" : "middle") + '">' + esc(t) + "</text>"; }); }
     return h + "</svg>";
@@ -964,13 +969,13 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     let h = '<div class="hero"><div class="hl"><span>Gesamtvermögen</span><button class="eyeb" data-act="hide" aria-label="' + (S.hide ? "Beträge zeigen" : "Beträge verbergen") + '">' + ico(S.hide ? "eyeoff" : "eye") + "</button></div>";
     h += '<b class="hv">' + money(tot) + "</b>";
     if (g == null) h += '<button class="hchip" data-act="kedit2">Kontostand eintragen ›</button>';
-    else if (C.ch != null) h += '<span class="hchip ' + (C.ch < 0 ? "dn" : "") + '">' + (C.ch < 0 ? "↓ −" : "↑ +") + (S.hide ? "•••" : eur(Math.abs(C.ch))) + (C.pc != null ? " · " + (C.pc < 0 ? "−" : "+") + Math.abs(C.pc).toFixed(1).replace(".", ",") + " %" : "") + '</span> <span class="hsub">seit ' + dfmt(C.ref.d) + C.ref.d.slice(2, 4) + "</span>";
+    else if (C.ch != null) h += '<span class="hchip ' + (C.ch < 0 ? "dn" : "") + '">' + (C.ch < 0 ? "↓ −" : "↑ +") + blr(eur(Math.abs(C.ch))) + (C.pc != null ? " · " + (C.pc < 0 ? "−" : "+") + Math.abs(C.pc).toFixed(1).replace(".", ",") + " %" : "") + '</span> <span class="hsub">seit ' + dfmt(C.ref.d) + C.ref.d.slice(2, 4) + "</span>";
     h += '<div class="hper" role="group" aria-label="Zeitraum">' + PERS.map(([k, l]) => '<button data-act="wper" data-id="' + k + '" aria-pressed="' + (k === P) + '">' + l + "</button>").join("") + "</div>";
     if (C.ser.length > 1) h += '<div class="hspark">' + lineSvg([{ v: C.ser.map(x => x.v), col: "#d9bf8c" }], null, { h: 70, vals: false, area: true, aria: "Verlauf Gesamtvermögen" }) + "</div>";
     h += '<div class="hsplit"><button data-act="detail" data-id="giro"><span>Girokonto</span><b>' + (g == null ? "–" : money(g)) + '</b></button><button data-act="detail" data-id="depot"><span>Depot</span><b>' + money(dp) + "</b></button></div></div>";
     h += alertsHtml();
     h += '<div class="iocards"><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii in">' + ico("down") + '</span><span>Einnahmen ' + mshort(cm) + '</span><b>' + money(t.i) + '</b></button><button class="ioc" data-act="mopen" data-id="' + cm + '"><span class="ii out">' + ico("up") + '</span><span>Ausgaben ' + mshort(cm) + '</span><b>' + money(t.o) + "</b></button></div>";
-    h += '<div class="iocards small3"><div class="ioc"><span>Überschuss</span><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + (S.hide ? "•••• €" : (t.s > 0 ? "+" : "") + eur(t.s)) + '</b></div><div class="ioc"><span>Gespart</span><b>' + money(t.sp) + '</b></div><div class="ioc"><span>Sparquote</span><b>' + (t.i > 0 ? Math.round(t.s / t.i * 100) + " %" : "–") + "</b></div></div>";
+    h += '<div class="iocards small3"><div class="ioc"><span>Überschuss</span><b class="' + (t.s < 0 ? "neg" : "pos") + '">' + blr((t.s > 0 ? "+" : "") + eur(t.s)) + '</b></div><div class="ioc"><span>Gespart</span><b>' + money(t.sp) + '</b></div><div class="ioc"><span>Sparquote</span><b>' + (t.i > 0 ? Math.round(t.s / t.i * 100) + " %" : "–") + "</b></div></div>";
     return h;
   }
   /* Detailansichten Girokonto / Depot (Blatt) */
@@ -1005,7 +1010,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     const g = ms.map(m => m === cm ? giroNow() : S.konto ? kontoBal(m) : null), d = ms.map(m => m === cm ? depotNow() : depotBal(m)), v = ms.map((m, j) => (g[j] || 0) + d[j]);
     const wp = (S.konto ? kontoBal(pm) : 0) + depotBal(pm), wpp = (S.konto ? kontoBal(im(kc - 2)) : 0) + depotBal(im(kc - 2));
     let h = '<div class="block"><div class="grphead"><h2>Vermögensentwicklung</h2><div class="seg" role="group" aria-label="Zeitraum">' + [6, 12, 24].map(x => '<button data-act="dper" data-id="' + x + '" aria-pressed="' + (x === n) + '">' + x + " M</button>").join("") + "</div></div>";
-    h += '<h3>Letzter Monat: ' + mname(pm) + '</h3><div class="stats"><div><b class="pos">' + money(tp.i) + '</b><span>Einnahmen</span></div><div><b class="neg">' + money(tp.o) + '</b><span>Ausgaben</span></div><div><b>' + money(tp.sp) + '</b><span>gespart</span></div><div><b class="' + (wp - wpp < 0 ? "neg" : "pos") + '">' + (S.hide ? "•••• €" : (wp - wpp >= 0 ? "+" : "") + eur(wp - wpp)) + "</b><span>Vermögen im " + mname(pm).split(" ")[0] + "</span></div></div>";
+    h += '<h3>Letzter Monat: ' + mname(pm) + '</h3><div class="stats"><div><b class="pos">' + money(tp.i) + '</b><span>Einnahmen</span></div><div><b class="neg">' + money(tp.o) + '</b><span>Ausgaben</span></div><div><b>' + money(tp.sp) + '</b><span>gespart</span></div><div><b class="' + (wp - wpp < 0 ? "neg" : "pos") + '">' + blr((wp - wpp >= 0 ? "+" : "") + eur(wp - wpp)) + "</b><span>Vermögen im " + mname(pm).split(" ")[0] + "</span></div></div>";
     h += '<h3>Vermögen am Monatsende</h3>' + lineSvg([{ v, col: "var(--accent)" }, { v: d, col: "var(--gold)", w: 1.6 }].concat(S.konto ? [{ v: g, col: "var(--c3)", w: 1.6 }] : []), lab, { aria: "Vermögen, Depot und Girokonto am Monatsende" }) +
       '<div class="legend"><span><i style="background:var(--accent)"></i>Gesamt</span><span><i style="background:var(--gold)"></i>Depot</span>' + (S.konto ? '<span><i style="background:var(--c3)"></i>Girokonto</span>' : "") + "</div>";
     h += '<h3>Einnahmen, Ausgaben und Sparen</h3>' + barSvg(ms.map(m => { const t = totals(m); return { lab: mshort(m), bars: [{ v: t.i, col: "var(--good)" }, { v: t.o, col: "var(--bad)" }, { v: t.sp, col: "var(--gold)" }] }; }), { aria: "Einnahmen, Ausgaben und Sparen pro Monat" }) +
@@ -1034,7 +1039,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   }
   function alertsHtml() {
     const A = alertList(); if (!A.length) return "";
-    return '<div class="alerts">' + A.slice(0, S.alAll ? 99 : 3).map(a => '<div class="alert lv' + a.lv + '"><div><b>' + esc(a.t) + '</b><span>' + esc(a.s) + '</span></div><button class="ghost" data-act="alhide" data-id="' + esc(a.k) + '" aria-label="Für diesen Monat ausblenden">✕</button></div>').join("") +
+    return '<div class="alerts">' + A.slice(0, S.alAll ? 99 : 3).map(a => '<div class="alert lv' + a.lv + '"><div><b>' + esc(a.t) + '</b><span>' + blr(esc(a.s)) + '</span></div><button class="ghost" data-act="alhide" data-id="' + esc(a.k) + '" aria-label="Für diesen Monat ausblenden">✕</button></div>').join("") +
       (A.length > 3 && !S.alAll ? '<button class="ghost" data-act="alall">Alle ' + A.length + " Hinweise zeigen</button>" : "") + "</div>";
   }
   function dashGoals() {
@@ -1073,7 +1078,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       off += len;
     });
     const pr = pk && rows.find(r => r.c === pk), nm = pr ? catName(pk) : "";
-    h += '</g><text class="ct" x="95" y="96" text-anchor="middle">' + eur(pr ? pr.v : tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (pr ? esc(nm.length > 15 ? nm.slice(0, 13).trim() + "…" : nm) : ty === "in" ? "Einnahmen" : "Ausgaben") + "</text>" + (pr ? '<text class="cl" x="95" y="132" text-anchor="middle">' + pctR(pr) + "</text>" : "") + "</svg>";
+    h += '</g><text class="ct" x="95" y="96" text-anchor="middle"' + SBLR() + ">" + eur(pr ? pr.v : tot) + '</text><text class="cl" x="95" y="116" text-anchor="middle">' + (pr ? esc(nm.length > 15 ? nm.slice(0, 13).trim() + "…" : nm) : ty === "in" ? "Einnahmen" : "Ausgaben") + "</text>" + (pr ? '<text class="cl" x="95" y="132" text-anchor="middle">' + pctR(pr) + "</text>" : "") + "</svg>";
     return h;
   }
 
@@ -1119,8 +1124,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       '<div class="ctl"><div class="seg" role="group" aria-label="Zeitraum"><button data-act="cper" data-id="m" aria-pressed="' + (S.cper === "m") + '">Monat</button><button data-act="cper" data-id="y" aria-pressed="' + (S.cper === "y") + '">Jahr</button></div>' +
       '<div class="month"><button data-act="' + (S.cper === "y" ? "yprev" : "mprev") + '" aria-label="Zurück">‹</button><b style="font-size:16px">' + perLabel() + '</b><button data-act="' + (S.cper === "y" ? "ynext" : "mnext") + '" aria-label="Weiter">›</button></div></div>';
     if (!rows.length) h += '<p class="empty">Keine ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " in diesem Zeitraum.</p>";
-    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + (r.n === 1 ? " Eintrag" : " Einträge") + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pctR(r) + "<small>" + eur(r.v) + "</small>" : eur(r.v) + "<small>" + pctR(r) + "</small>") + "</span></button>" + (r.c === S.cpick ? pickHtml(rows, ty) : "")).join("") +
-      '<div class="crow tot"><span></span><span class="n">Summe ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + '</span><span class="v' + (ty === "out" ? " neg" : " pos") + '">' + eur(tot) + "<small>100 %</small></span></div></div></div>" +
+    else h += '<div class="pie">' + donut(rows, tot, ty) + '<div class="clist">' + rows.map(r => '<button class="crow' + (r.c === S.cpick ? " on" : "") + '" data-act="cpick" data-id="' + esc(r.c) + '"><span class="dot" style="background:' + ccol(r.c) + '"></span><span class="n">' + esc(catName(r.c)) + "<small>" + r.n + (r.n === 1 ? " Eintrag" : " Einträge") + '</small></span><span class="v' + (ty === "out" ? " neg" : ty === "in" ? " pos" : "") + '">' + (S.cunit === "pct" ? pctR(r) + "<small>" + money(r.v) + "</small>" : money(r.v) + "<small>" + pctR(r) + "</small>") + "</span></button>" + (r.c === S.cpick ? pickHtml(rows, ty) : "")).join("") +
+      '<div class="crow tot"><span></span><span class="n">Summe ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + '</span><span class="v' + (ty === "out" ? " neg" : " pos") + '">' + money(tot) + "<small>100 %</small></span></div></div></div>" +
       '<p class="small muted">Kategorie antippen, um alle ' + (ty === "in" ? "Einnahmen" : "Ausgaben") + " darin zu sehen." + (S.cper === "y" && +y >= +cm.slice(0, 4) ? " Kommende Monate sind geplant." : "") + "</p>";
     h += "</div>"; const hCat = h;
     /* v45: Übersicht = Dashboard; Kontostand, Saldo und Geldfluss wandern in den Reiter „Analyse“ */
